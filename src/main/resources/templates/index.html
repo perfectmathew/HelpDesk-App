@@ -1,0 +1,146 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
+      class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="">
+    <title>HelpDesk | Nowe zgłoszenie</title>
+    <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+    <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" type="text/css" href="/resources/css/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+</head>
+<body>
+<main class="flex">
+    <nav id="holder" th:insert="fragments/header :: header_fragment"></nav>
+    <section class="flex-1 bg-gray-900 bg-opacity-20">
+        <div class="flex justify-center items-center h-screen text-center text-black">
+            <form action="" enctype="multipart/form-data" method="post" id="ticketform" class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
+                <div id="content">
+                    <h1 class="block text-gray-700 text-4xl font-bold mb-2">New ticket</h1>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dziedzina">Jakiej dziedziny dotyczny zgłoszenie?</label>
+                    <div class="mb-6">
+                        <p class="block text-gray-700 text-sm font-bold mb-2">Zacznij pisać, a aplikacja sama przydzieli ci kategorię...</p>
+                        <input type="text" id="searchby" class="shadow appearance-none border rounded-2xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <p class="block text-gray-700 text-sm font-bold mb-2">Nadal nie możesz znaleźć? Wybierz kategorię zgłoszenia poniżej</p>
+                        <select class="shadow appearance-none border rounded-2xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="dziedzina" id="dziedzina">
+                            <option value="*">Wybierz opcję</option>
+                            <option value="SERVICE">Usterka sprzętowa</option>
+                            <option value="IT">Pomoc informatyczna</option>
+                        </select>
+                    </div>
+                    <button type="button" id="next-btn" class=" bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Dalej</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    let token = $('#_csrf').attr('content');
+    let header = $('#_csrf_header').attr('content');
+    $(document).on("input","#searchby", function (){
+        $.ajax({
+            type: "GET",
+            url: "/searchby",
+            data: {"keyword": $(this).val()},
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (response){
+
+            },
+            error: function (){
+                notification("Błąd krytyczny serwera!");
+            }
+        });
+    });
+    $( "#ticketform" ).on( "submit", function(e) {
+        $('#content').fadeOut(500,function (){
+            $('#content').empty()
+        })
+        let loading = "<div class='mb-6 text-gray-800'>   <i class=\"fa-solid fa-cog fa-spin fa-2xl\"></i> </div>";
+        $('#content').fadeIn(250,function () {
+            $('#content').append(loading);
+        });
+        let form = $('#ticketform')[0];
+        let datas = new FormData(form);
+        $.ajax({
+            type: "POST",
+            url: "/sendTicket",
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            data: datas,
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function () {
+                notification("Pomyślnie wysłano zgłoszenie!")
+                $('#content').fadeOut(1000,function (){
+                    $('#content').empty()
+                })
+                let content = "<div class='mb-6 pt-1 text-green-500'> <i class=\"fa-solid fa-circle-check fa-2xl\"></i> </div>"
+                    + "<div class='mb-6'><h1  class='block font-bold text-gray-700'>Dziękujemy za wysłanie zgłoszenia!</h1></div> "
+                    + "<div class='mb-6'><p class='block font-bold text-gray-700'>Na podany adres email, został wysłany link do śledzenia postępów nad tym zgłoszeniem!</p> </div>"
+                    +"<div class='mb-6'><a href='/home'><button class='bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'>Powrót do strony głównej</button> </a></div>";
+                $('#content').fadeIn(500,function () {
+                    $('#content').append(content);
+                });
+            },
+            error: function (e){
+                notification("Wystąpił błąd podczas wysyłania zgłoszenia!")
+            }
+        });
+        e.preventDefault();
+    });
+    $(document).on('click','#next-btn',function (){
+        let dziedzina = $('#dziedzina').val();
+        let content = "<p  class='block font-bold text-gray-700'>Wyślij zgłoszenie</p>"
+            + " <div class=\"mb-4\">"
+            + "<label class=\"block text-gray-700 text-sm font-bold mb-2\" for='name'>Imie</label>"
+            + "<input type='text' placeholder='Imie' class=\"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" name='name' id='name' required>"
+            + "</div>"
+            + " <div class=\"mb-4\">"
+            + "<label class=\"block text-gray-700 text-sm font-bold mb-2\" for='surname'>Nazwisko</label>"
+            + "<input type='text' placeholder='Nazwisko' class=\"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" name='surname' id='surname' required>"
+            + "</div>"
+            + "<div class='mb-6'>"
+            + "<label class=\"block text-gray-700 text-sm font-bold mb-2\" for='email'>Kontakt</label>"
+            + "<input type='email' placeholder='Adres Email' class=\"shadow appearance-none border rounded mb-3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" name='email' id='email' required>"
+            + "<input type='text' placeholder='Telefon' class=\"shadow appearance-none border rounded mb-3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" name='phonenumber' id='phonenumber'>"
+            + "</div>"
+            + "<div class='mb-6'>"
+            + "<textarea placeholder='Treść zgłoszenia' class=\"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" name='description' id='description' required></textarea>"
+            + "</div>"
+            +"<input type='hidden' value='"+dziedzina+"' id='selectedDepartment' name='selectedDepartment'>"
+            + "<input type=\"file\" id='attachments' name='attachments' multiple=\"multiple\">"
+            + "<button type='submit' id=\"submit-btn\" class=\"bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline\">Wyślij zgłoszenie</button>"
+        $('#content').fadeOut(1000,function (){
+            $('#content').empty();
+        });
+        $('#content').fadeIn(500,function (){
+            $('#content').append(content);
+        });
+    });
+
+
+</script>
+
+<script type="application/javascript" src="/resources/js/main.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</body>
+</html>

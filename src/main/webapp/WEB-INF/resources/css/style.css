@@ -1,0 +1,46 @@
+:root {
+    --color-brand: rgb(14, 211, 207)
+}
+
+.min-wv-4 {
+    min-width: 40vw;
+}
+
+.min-hv-4 {
+    min-height: 40vh;
+}
+
+.max-hv-9 {
+    max-height: 90vh;
+}
+
+.hover\:text-brand:hover {
+    color: var(--color-brand);
+}
+
+.hover\:bg-brand:hover {
+    background-color: var(--color-brand);
+}
+
+.hover\:ring-brand:hover {
+    box-shadow: 0 0 0 .25rem var(--color-brand);
+}
+
+.btn {
+    padding: .2rem
+}
+
+.btn:hover {
+    animation: ft 1s forwards;
+
+}
+
+@keyframes ft {
+    0% {
+        transform: translate(0, 0)
+    }
+
+    100% {
+        transform: translate(0, -8%) scale(1.2)
+    }
+}

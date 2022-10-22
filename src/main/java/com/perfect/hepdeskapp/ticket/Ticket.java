@@ -1,0 +1,135 @@
+package com.perfect.hepdeskapp.ticket;
+
+import com.perfect.hepdeskapp.attachment.Attachment;
+import com.perfect.hepdeskapp.department.Department;
+import com.perfect.hepdeskapp.status.Status;
+import com.perfect.hepdeskapp.task.Task;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.*;
+
+@Entity
+@Table(name = "ticket", schema = "public")
+public class Ticket {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String description;
+    private String notifier_name;
+    private String notifier_surname;
+    private String notifier_phonenumber;
+    private String notifier_email;
+    private String access_token;
+    private Date ticket_time;
+    @ManyToOne
+    @JoinColumn(name = "statusid")
+    private Status status;
+    @ManyToOne
+    @JoinColumn(name = "departmentid")
+    private Department department;
+    @ManyToMany
+    @JoinTable(
+            name = "ticket_attachments",
+            joinColumns = @JoinColumn(name =  "ticket_id"),
+            inverseJoinColumns = @JoinColumn(name = "attachment_id")
+    )
+    private List<Attachment> attachmentSet = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "ticket_tasks",
+            joinColumns = @JoinColumn(name = "ticket_id"),
+            inverseJoinColumns = @JoinColumn(name = "task_id")
+    )
+    private Set<Task> ticketTasksSet = new HashSet<>();
+    public Ticket() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getNotifier_name() {
+        return notifier_name;
+    }
+
+    public void setNotifier_name(String notifier_name) {
+        this.notifier_name = notifier_name;
+    }
+
+    public String getNotifier_surname() {
+        return notifier_surname;
+    }
+
+    public void setNotifier_surname(String notifier_surname) {
+        this.notifier_surname = notifier_surname;
+    }
+
+    public String getNotifier_phonenumber() {
+        return notifier_phonenumber;
+    }
+
+    public void setNotifier_phonenumber(String notifier_phonenumber) {
+        this.notifier_phonenumber = notifier_phonenumber;
+    }
+
+    public String getNotifier_email() {
+        return notifier_email;
+    }
+
+    public void setNotifier_email(String notifier_email) {
+        this.notifier_email = notifier_email;
+    }
+
+    public String getAccess_token() {
+        return access_token;
+    }
+
+    public void setAccess_token(String access_token) {
+        this.access_token = access_token;
+    }
+
+    public Date getTicket_time() {
+        return ticket_time;
+    }
+
+    public void setTicket_time(Date ticket_time) {
+        this.ticket_time = ticket_time;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public List<Attachment> getAttachmentSet() {
+        return attachmentSet;
+    }
+
+    public void setAttachmentSet(List<Attachment> attachmentSet) {
+        this.attachmentSet = attachmentSet;
+    }
+}
