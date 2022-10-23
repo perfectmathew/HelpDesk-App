@@ -53,7 +53,7 @@ public class TicketController {
     }
     @PostMapping(value = "/sendTicket")
     @ResponseBody
-    public String submitTicket(Model model, HttpServletRequest request, Ticket ticket, Department department, Attachment attachment,
+    public String submitTicket(HttpServletRequest request, Ticket ticket, Department department,
                                @RequestParam("name") String name, @RequestParam("surname") String surname,
                                @RequestParam("email") String email, @RequestParam("phonenumber") String phone,
                                @RequestParam("description") String ticket_content,

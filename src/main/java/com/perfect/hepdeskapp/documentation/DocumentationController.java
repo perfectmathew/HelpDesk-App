@@ -75,6 +75,14 @@ public class DocumentationController {
     public String deleteDocumentation(@PathVariable("documentationId") Long documentation){
         Documentation documentationObject = documentationRepository.findDocumentationById(documentation);
         Long ticket = documentationObject.getTicket().getId();
+        if(documentationObject.getDocumentationAttachmentsSet() != null || !documentationObject.getDocumentationAttachmentsSet().isEmpty())
+        {
+            Attachment attachment = attachmentRepository.findAttachmentByDocumentation(documentationObject.getId()).get(0);
+            String result = attachment.getUrl();
+            String r[] = result.split("/");
+            Path path = Paths.get("src","main","webapp","WEB-INF","uploads",r[2]);
+            FileUploadService.deleteDirectory(path.toFile());
+        }
 
         documentationRepository.delete(documentationObject);
         return "redirect:/t/"+ticket;

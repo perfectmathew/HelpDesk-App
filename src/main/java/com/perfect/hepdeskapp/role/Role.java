@@ -1,6 +1,10 @@
 package com.perfect.hepdeskapp.role;
 
+import com.perfect.hepdeskapp.user.User;
+
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "role",schema = "public")
@@ -9,7 +13,8 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-
+    @ManyToMany(mappedBy = "roleSet")
+    private Set<User> userSet = new HashSet<>();
     public Role(Long id, String name) {
         this.id = id;
         this.name = name;

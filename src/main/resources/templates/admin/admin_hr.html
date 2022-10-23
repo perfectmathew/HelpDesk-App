@@ -1,0 +1,182 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
+      class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+  <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title>HelpDesk | HR Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+</head>
+<body>
+<main class="flex">
+  <nav id="holder" th:insert="fragments/header :: header_fragment"></nav>
+  <section class="flex-1 bg-gray-900 bg-opacity-20">
+    <div class="bg-red-500 text-white" role="alert" th:text="${error}" th:if="${error}"></div>
+    <div class="flex justify-center items-center h-screen text-center text-black">
+      <div class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-gray-800 font-bold">HR Management</h2>
+        <a id="addUserBtn" class="text-green-500 font-bold text-right">Add new user</a>
+        <hr>
+        <div class="flex relative rounded-2xl shadow-md sm:rounded-lg">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-white uppercase bg-gray-50 dark:bg-gray-700 dark:text-white">
+            <tr>
+              <th scope="col" class="py-3 px-6">
+                Name
+              </th>
+              <th scope="col" class="py-3 px-6">
+                Surname
+              </th>
+              <th scope="col" class="py-3 px-6">
+                Email
+              </th>
+              <th scope="col" class="py-3 px-6">
+                Phone
+              </th>
+              <th scope="col" class="py-3 px-6">
+                Department
+              </th>
+              <th scope="col" class="py-3 px-6">
+                Action
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${users != null and !users.isEmpty()}" th:each="user : ${users}" class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
+              <td th:text="${user.name}" scope="row" class="py-4 px-6 font-medium text-white whitespace-nowrap">
+
+              </td>
+              <td th:text="${user.surname}" class="py-4 px-6">
+
+              </td>
+              <td th:text="${user.email}" class="py-4 px-6">
+
+              </td>
+              <td th:text="${user.phone_number}" class="py-4 px-6">
+
+              </td>
+              <td th:text="${user.department.name}" class="py-4 px-6">
+
+              </td>
+              <td class="py-4 px-6">
+                <a  class="editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                <a  th:href="${'/admin/hr/deleteUser/'+user.id}" class="font-medium text-red-700 dark:text-red-500 hover:underline">Delete</a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div id="addModal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div class="fixed z-10 inset-0 overflow-y-auto">
+      <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+        <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <form id="user-form" method="post" action="/api/addUser">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900" >Add new user</h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">Name</p>
+                  </div>
+                  <div class="mt-6">
+                    <input type="text" placeholder="Name" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">Surname</p>
+                  </div>
+                  <div class="mt-6">
+                    <input type="text" placeholder="Surname" id="surname" name="surname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">Phone number</p>
+                  </div>
+                  <div class="mt-6">
+                    <input type="text" placeholder="Phone number" id="phone_number" name="phone_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">Email</p>
+                  </div>
+                  <div class="mt-6">
+                    <input type="email" placeholder="Email" name="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">Password</p>
+                  </div>
+                  <div class="mt-6">
+                    <input type="password" placeholder="*******" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                  </div>
+
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button  type="submit" class="addBtn w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:ml-3 sm:w-auto sm:text-sm">Add</button>
+            <button id="hide-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-500 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  let canSubmit = false;
+  let token = $('#_csrf').attr('content');
+  let header = $('#_csrf_header').attr('content');
+  $(document).on('click','.editUserBtn',function (){
+    var currentTD = $(this).closest("tr").find("td");
+    $('#user-form').attr('action','/api/editUser')
+    $('.addBtn').text("Edit user")
+    $('#name').val($(currentTD).eq(0).text())
+    $('#surname').val($(currentTD).eq(1).text())
+    $('#email').val($(currentTD).eq(2).text())
+    $('#phone_number').val($(currentTD).eq(3).text())
+    //console.log($(currentTD).eq(1).text())
+    $('#addModal').show();
+  })
+  $(document).on('input','#email',function (){
+    $.ajax({
+      url: "/api/checkEmail",
+      type: "POST",
+      data: {"email" : $(this).val()},
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader(header, token);
+      },
+      success: function (response){
+        if (response === false){
+          $('#email').val("Email already taken!");
+          $('.addBtn').attr("disabled",true);
+        }else {
+          $('.addBtn').attr("disabled",false);
+        }
+      },
+      error: function (){
+
+      }
+    })
+  })
+  $(document).on('click','#addUserBtn',function (){
+    $('#user-form').attr('action','/api/addUser')
+    $('.addBtn').text("Add user")
+    $('#addModal').show();
+  })
+</script>
+</body>
+</html>

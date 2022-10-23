@@ -28,13 +28,13 @@ public class FileUploadService {
         }
     }
 
-   public static boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
+   public static boolean deleteDirectory(File directory) {
+        File[] allContent = directory.listFiles();
+        if (allContent != null) {
+            for (File file : allContent) {
                 deleteDirectory(file);
             }
         }
-        return directoryToBeDeleted.delete();
+        return directory.delete();
     }
 }

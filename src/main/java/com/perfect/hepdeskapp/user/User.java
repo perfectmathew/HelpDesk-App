@@ -32,8 +32,7 @@ public class User {
     public User(){
 
     }
-    public User(Long id, String name, String surname, String phone_number, String email, String password, Department department, Role role, String password_token) {
-        this.id = id;
+    public User(String name, String surname, String phone_number, String email, String password, Department department, Role role) {
         this.name = name;
         this.surname = surname;
         this.phone_number = phone_number;
@@ -41,7 +40,6 @@ public class User {
         this.password = password;
         this.department = department;
         this.roleSet.add(role);
-        this.password_token = password_token;
     }
 
     public Long getId() {
