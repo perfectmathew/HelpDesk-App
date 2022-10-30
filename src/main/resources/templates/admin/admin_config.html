@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
       class="scroll-smooth">
 <head>
@@ -7,10 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="description" content="">
-  <title>HelpDesk | Admin Panel</title>
+  <title>HelpDesk | Settings</title>
   <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
   <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
-  <link rel="stylesheet" type="text/css" href="/resources/css/main.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,18 +25,207 @@
 </head>
 <body>
 <main class="flex">
-  <nav id="navabarhelp" th:insert="fragments/header :: header_fragment"></nav>
+  <nav th:insert="fragments/header :: header_fragment"></nav>
   <section class="flex-1 bg-gray-900 bg-opacity-20">
-    <div class="w-full h-full bg-amber-50" id="row">
-      <div class="bg-gray-900 w-full text-right text-white text-2xl h-18 p-1">
-        <input type="text" class="rounded-2xl text-gray-600"> <button class="rounded-2xl bg-white text-black m-1.5"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">HelpDesk Settings</h3>
       </div>
-
-
+      <div class="border-t border-gray-200">
+        <dl>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Version</dt>
+            <dd th:text="${appVersion}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{APP_VERSION}}}</dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Site Config</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <p class="font-bold"> Site status  <span class="text-green-500">ON</span> </p>
+              <div id="site-config">
+              <p class="font-bold"> Maintenance mode:  <span id="maintenance-mode" th:text="${maintenanceMode}" class="text-red-700">{{MAINTENANCE_MODE}}</span></p>
+              <p class="font-bold"> Server port: <span id="server-port" th:text="${serverPort}">{{SERVER_PORT}}</span> </p>
+                <p class="font-bold"> Max file size: <span id="max-file-size" th:text="${maxFileSize}">{{MAX_FILE_SIZE}}</span>  </p>
+              <p class="font-bold"> Max request file size:  <span id="max-request-file-size" th:text="${maxRequestFileSize}">{{MAX_REQUEST_FILE_SIZE}}</span></p>
+              </div>
+            </dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Database config</dt>
+            <dd id="db-config" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <p class="font-bold"> Database server: </p> <p id="database-server" th:text="${dbServer}">{{DB_CONNECTION_STRING}}</p>
+              <p class="font-bold"> Database username: </p> <p id="database-username" th:text="${dbUser}">{{DB_USERNAME}}</p>
+              <p class="font-bold"> Database password: </p> <input type="password"  id="database-password" th:value="${dbPassword}" class="" disabled></input>
+            </dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">SMTP config</dt>
+            <dd id="smtp-config" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <p class="font-bold"> Status </p> <p id="smtp-server-status" th:text="${smtpStatus}" class="text-red-700">{{SMTP_STATUS}}</p>
+              <p class="font-bold"> SMTP server: </p> <p id="smtp-server" th:text="${smtpServer}">{{SMTP_SERVER}}</p>
+              <p class="font-bold"> SMTP port: </p > <p id="smtp-server-port" th:text="${smtpPort}">{{SMTP_PORT}}</p>
+              <p class="font-bold"> SMTP username: </p> <p id="smtp-username" th:text="${smtpUsername}">{{SMTP_SERVER}}</p>
+              <p class="font-bold"> SMTP password: </p> <input type="password" id="smtp-password" th:value="${smtpPassword}" class="password" disabled></input>
+            </dd>
+          </div>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <button id="change-config" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="hidden inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
+            ><i class="fa-solid fa-check"></i> Save changes</button>
+            <button id="edit-config" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="inline-block px-6 py-2.5 bg-yellow-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-yellow-700 hover:shadow-lg focus:bg-yellow-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-yellow-800 active:shadow-lg transition duration-150 ease-in-out"
+            ><i class="fa-solid fa-pen"></i> Edit config</button>
+            <button id="backup-configuration" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="hidden inline-block px-6 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out"
+            >  <i class="fa-solid fa-scroll"></i> Backup running configuration</button>
+         <button id="check-update" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="inline-block px-6 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out"
+          >  <a href="/admin/settings/update"><i class="fa-regular fa-eye"></i> Check update</a></button>
+            <button id="cancel-changes" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="hidden inline-block px-6 py-2.5 bg-red-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out"
+            >  <i class="fa-solid fa-xmark"></i> Cancel changes </button>
+           <button id="restart-server" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="inline-block px-6 py-2.5 bg-red-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out"
+           > <a href="/admin/settings/restart"><i class="fa-solid fa-power-off"></i> Restart server </a></button>
+          </div>
+        </dl>
+      </div>
     </div>
   </section>
+  <div id="risk-modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div class="fixed z-10 inset-0 overflow-y-auto">
+      <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+        <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 class="form-tittle text-lg leading-6 font-medium text-gray-900" >Attention!</h3>
+                  <div class="mt-6">
+                    <p>Note that editing this part of the application is only for users who are familiar with it. Even a small change here can cause the application to not work properly. We recommend backing up running configuration before you apply changes.</p>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button id="approve-risk"  type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-500 text-base font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300 sm:ml-3 sm:w-auto sm:text-sm">
+              <i class="fa-solid fa-check"></i>  I accept the risk</button>
+            <button  type="button" class="close-modal w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-300 sm:ml-3 sm:w-auto sm:text-sm"> <i class="fa-solid fa-xmark"></i> Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
+<script>
+  let token = $('#_csrf').attr('content');
+  let header = $('#_csrf_header').attr('content');
+  let db_connection_string = ""
+  let db_username = ""
+  let db_password = ""
+  let maintained_mode = ""
+  let server_port =""
+  let max_file_size = ""
+  let max_request_file_size = ""
+  let smtp_server_status = ""
+  let smtp_server = ""
+  let smtp_server_port = ""
+  let smtp_username = ""
+  let smtp_password = ""
+  $(document).on('click','#cancel-changes',function () {
+    location.reload()
+  })
+  $(document).on('click','#approve-risk',function (){
+    $('#edit-config').hide();
+    $("#check-update").hide();
+    $('#restart-server').hide();
+    $('#change-config').show();
+    $('#backup-configuration').show();
+    $('#cancel-changes').show();
+    db_connection_string = $('#database-server').text();
+    db_username = $('#database-username').text();
+    db_password = $('#database-password').val();
+    maintained_mode = $('#maintenance-mode').text();
+    server_port = $('#server-port').text();
+    max_file_size = $('#max-file-size').text();
+    max_request_file_size = $('#max-request-file-size').text();
+    smtp_server_status = $('#smtp-server-status').text();
+    smtp_server = $('#smtp-server').text();
+    smtp_server_port = $('#smtp-server-port').text();
+    smtp_username = $('#smtp-username').text();
+    smtp_password = $('#smtp-password').val();
+    $('#site-config').empty().append("<p class='font-bold mt-2'> Maintenance mode (ON/OFF): </p>" +
+            "<input type='text' id='site-maintenance' value='"+maintained_mode+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> Server port (eg. 80): </p>" +
+            "<input type='text' id='site-server-port' value='"+server_port+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> Max file size for uploads: </p>" +
+            "<input type='text' id='site-file-size' value='"+max_file_size+"' class=' mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> Max file size for request uploads: </p>" +
+            "<input type='text' id='site-request-file-size' value='"+max_request_file_size+"' class=' mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>")
+    $('#smtp-config').empty().append("<p class='font-bold mt-2'> SMTP Server status (ON/OFF): </p>" +
+            "<input type='text' id='smtp-config-status' value='"+smtp_server_status+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> SMTP Server (Only servers with SSL Encryption is supported): </p>" +
+            "<input type='text' id='smtp-config-connection' value='"+smtp_server+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> SMTP port: </p>" +
+            "<input type='text' id='smtp-config-server-port' value='"+smtp_server_port+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> SMTP username: </p>" +
+            "<input type='text' id='smtp-config-username' value='"+smtp_username+"' class=' mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> SMTP password: </p>" +
+            "<input type='text' id='smtp-config-password' value='"+smtp_password+"' class=' mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<button id='test-smtp' type='button' data-mdb-ripple='true' data-mdb-ripple-color='light' class='inline-block px-6 mt-2 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out'\n" +
+            "          >  <i class='fa-solid fa-cloud-arrow-up'></i>  Test Connection</button><div id='messages-smtp'></div>")
+    $('#db-config').empty().append("<p class='font-bold mt-2'> Database server (Only PostgresSQL is supported in curent build!): </p>" +
+            "<input type='text' id='db-connection-string' value='"+db_connection_string+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> Database username: </p>" +
+            "<input type='text' id='db-username' value='"+db_username+"' class='mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<p class='font-bold mt-2'> Database password: </p>" +
+            "<input type='text' id='db-password' value='"+db_password+"' class=' mt-2 border py-1 px-3 w-full rounded-2xl shadow-md'>" +
+            "<button id='test-db' type='button' data-mdb-ripple='true' data-mdb-ripple-color='light' class='inline-block px-6 mt-2 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out'\n" +
+            "          ><i class='fa-solid fa-database'></i> Test Connection</button><div id='messages'></div>")
+    $('#risk-modal').fadeOut(300)
+  })
+  $(document).on('click','.close-modal',function (){
+    $('#risk-modal').fadeOut(300);
+  })
+  $(document).on('click','#edit-config',function (){
+    $('#risk-modal').fadeIn(300)
 
+  })
+  $(document).on('click','#test-smtp',function (){
+    $.ajax({
+      url: "/admin/settings/check-smtp",
+      type: "get",
+      data: { "smtp_server" : $('#smtp-config-connection').val(), "smtp_server_port" : $('#smtp-config-server-port').val(),
+      "smtp_username": $('#smtp-config-username').val(), "smtp_password" : $('#smtp-config-password').val() },
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader(header, token);
+      },
+      success: function (response){
+        if(response === "Successful"){
+          $('#messages-smtp').empty().append("<p class='mt-2 text-green-500 font-bold>'>Connected successful!</p>")
+        }else{
+          $('#messages-smtp').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
+        }
+      },
+      error: function (){
+        $('#messages-smtp').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
+      }
+    })
+  })
+  $(document).on('click','#test-db',function (){
+    $.ajax({
+      url: "/admin/settings/check-db",
+      type: "get",
+      data: { "url" : $('#db-connection-string').val(), "username" : $('#db-username').val(), "password" : $('#db-password').val()},
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader(header, token);
+      },
+      success: function (response){
+        if(response === "Successful"){
+          $('#messages').empty().append("<p class='mt-2 text-green-500 font-bold>'>Connected successful!</p>")
+        }else{
+          $('#messages').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
+        }
+      },
+      error: function (){
+        $('#messages').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
+      }
+    })
+  })
+</script>
 <script type="application/javascript" src="/resources/js/main.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>

@@ -5,14 +5,9 @@ import com.perfect.hepdeskapp.attachment.AttachmentRepository;
 import com.perfect.hepdeskapp.config.FileUploadService;
 import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,7 +30,7 @@ public class DocumentationController {
         this.attachmentRepository = attachmentRepository;
     }
     @PostMapping("/api/addDocumentation")
-    public String addDocumentation(Model model, @RequestParam("ticket") Long ticket, @RequestParam("content") String docContent,
+    public String addDocumentation(@RequestParam("ticket") Long ticket, @RequestParam("content") String docContent,
      @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException {
         Documentation documentation = new Documentation();
         Ticket ticketObject = ticketRepository.findTicketById(ticket);
@@ -49,7 +44,7 @@ public class DocumentationController {
             Random rnd = new Random();
             StringBuilder hash = new StringBuilder(10);
             for (int i = 0; i < 10; i++) hash.append(chars.charAt(rnd.nextInt(chars.length())));
-            String uploadDir = root.toString() + "/" + hash.toString();
+            String uploadDir = root + "/" + hash;
             for(MultipartFile file : files){
                 if(!file.isEmpty()){
                     FileUploadService.saveFile(uploadDir,file.getOriginalFilename(),file);
@@ -79,13 +74,13 @@ public class DocumentationController {
         {
             Attachment attachment = attachmentRepository.findAttachmentByDocumentation(documentationObject.getId()).get(0);
             String result = attachment.getUrl();
-            String r[] = result.split("/");
+            String[] r = result.split("/");
             Path path = Paths.get("src","main","webapp","WEB-INF","uploads",r[2]);
             FileUploadService.deleteDirectory(path.toFile());
         }
-
         documentationRepository.delete(documentationObject);
         return "redirect:/t/"+ticket;
     }
+
 
 }

@@ -5,17 +5,16 @@
 </head>
 <body>
 <div th:fragment="header_fragment" class="bg-gray-900 sm:w-60 h-screen w-14 pt-4 transition-all">
-  <div class="text-center text-white p-6">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110.78 86.25"><defs><style>.cls-1{fill:#221dff;}.cls-2{fill:#ff31fa;}.cls-3{fill:#8733ff;}.cls-4{font-size:22.8px;fill:#fcfaf2;font-family:Poppins-ExtraBold, Poppins;font-weight:800;}</style></defs><g id="Warstwa_2" data-name="Warstwa 2"><g id="OBJECTS"><path class="cls-1" d="M51.68,0H84.53l-9,25.37a6.25,6.25,0,0,1-5.89,4.16h-24a6.26,6.26,0,0,1-5.9-8.36l6.06-17A6.26,6.26,0,0,1,51.68,0Z"/><path class="cls-2" d="M59.1,40.07H26.25l9-25.37a6.26,6.26,0,0,1,5.9-4.16h24a6.26,6.26,0,0,1,5.9,8.36L65,35.91A6.27,6.27,0,0,1,59.1,40.07Z"/><path class="cls-3" d="M65.16,10.54H43.51L39.72,21.17a6.26,6.26,0,0,0,5.9,8.36H67.27L71.06,18.9A6.26,6.26,0,0,0,65.16,10.54Z"/><text id="HelpDesk" class="cls-4" transform="translate(0 72.21)">Helpdesk</text></g></g></svg>
-  </div>
-  <ul class="mt-11" sec:authorize="isAnonymous()">
+
+
+  <ul class="mt-5" sec:authorize="isAnonymous()">
     <a th:href="@{/}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">New Ticket</span>
       </li>
     </a>
-    <a th:href="@{/showstatus}">
+    <a th:href="@{/status}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
 
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>

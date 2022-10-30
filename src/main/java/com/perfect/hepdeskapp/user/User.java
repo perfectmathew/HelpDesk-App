@@ -4,6 +4,7 @@ import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.role.Role;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,6 +14,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank(message = "Name is mandatory")
     private String name;
     private String surname;
     private String phone_number;
@@ -102,9 +104,10 @@ public class User {
         return roleSet;
     }
 
-    public void setRoleSet(Set<Role> roleSet) {
-        this.roleSet = roleSet;
+    public void setRoleSet(Role role) {
+        this.roleSet.add(role);
     }
+    public void removeRole(Role role) { this.roleSet.remove(role); }
 
     public String getPassword_token() {
         return password_token;

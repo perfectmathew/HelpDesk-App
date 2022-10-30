@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
     @Query("SELECT t FROM Ticket t WHERE t.id = :id")
     public Ticket findTicketById(@Param("id") Long id);
+    @Query("SELECT t FROM Ticket t WHERE t.id = :id AND t.access_token = :token")
+    public Ticket findTicketByIdAndAccess_token(@Param("id") Long id, @Param("token") String token);
 }

@@ -14,18 +14,16 @@ import com.perfect.hepdeskapp.config.FileUploadService;
 import com.perfect.hepdeskapp.user.UserRepository;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeBodyPart;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,18 +36,20 @@ public class TicketController {
     private final StatusRepository statusRepository;
     private final AttachmentRepository attachmentRepository;
     private final DocumentationRepository documentationRepository;
+    private final Environment environment;
     final
     UserRepository userRepository;
     @Autowired
     NotifyService notify;
 
-    public TicketController(TicketRepository ticketRepository, DepartmentRepository departmentRepository, StatusRepository statusRepository, AttachmentRepository attachmentRepository,UserRepository userRepository, DocumentationRepository documentationRepository) {
+    public TicketController(TicketRepository ticketRepository, DepartmentRepository departmentRepository, StatusRepository statusRepository, AttachmentRepository attachmentRepository,UserRepository userRepository, DocumentationRepository documentationRepository, Environment environment) {
         this.ticketRepository = ticketRepository;
         this.departmentRepository = departmentRepository;
         this.statusRepository = statusRepository;
         this.attachmentRepository = attachmentRepository;
         this.userRepository = userRepository;
         this.documentationRepository = documentationRepository;
+        this.environment = environment;
     }
     @PostMapping(value = "/sendTicket")
     @ResponseBody
@@ -101,18 +101,20 @@ public class TicketController {
         ticket.setAccess_token(token);
         ticket.setTicket_time(date);
         ticketRepository.saveAndFlush(ticket);
-        String url = Utility.getSiteURL(request) + "/status?ticketid="+ String.valueOf(ticket.getId()) +"&tickettoken="+token;
-        try {
-            notify.sendEmail(email,"HelpDesk | Twoje zgłoszenie zostało wysłane!","<p>Witaj,</p>"
-                    + "<p>przekazaliśmy twoje zgłoszenie do odpowiednich osób.</p>"
-                    + "<p>Numer twojego zgłoszenia to: "+ticket.getId()+"</p>"
-                    + "<p>Hasło dostępowe twojego zgłoszenia to: "+token+"</p>"
-                    + "<p><a href=\"" + url + "\">przejdź do zgłoszenia</a></p>"
-                    + "<br>"
-                    + "<p>Dziękujemy za zaufanie. "
-                    + "Zespół: helpdesk.com .</p>");
-        } catch (MessagingException e) {
-            e.printStackTrace();
+        String url = Utility.getSiteURL(request) + "/status?ticket-id="+ String.valueOf(ticket.getId()) +"&ticket-token="+token;
+        if(!environment.getProperty("smtp.status").equals("OFF")) {
+            try {
+                notify.sendEmail(email, "HelpDesk | Your ticket has been sent!", "<p>Welcome,</p>"
+                        + "<p>we have forwarded your ticket to the appropriate people.</p>"
+                        + "<p>Your ticket number is: " + ticket.getId() + "</p>"
+                        + "<p>The access password for your ticket is: " + token + "</p>"
+                        + "<p><a href=\"" + url + "\">Go to ticket</a></p>"
+                        + "<br>"
+                        + "<p>Thank you for your trust. "
+                        + "Helpdesk system.</p>");
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
         return "index";
     }
@@ -125,4 +127,14 @@ public class TicketController {
         model.addAttribute("documentation",documentation);
         return "ticket/ticket_view";
     }
+    @GetMapping("/status")
+    public String ticketStatus(){
+        return "ticket/ticket_status";
+    }
+    @GetMapping(value = "/status", params = {"ticket-id","ticket-token"})
+    public String ticketStatus(@RequestParam(name = "ticket-id") Long ticketId, @RequestParam(name = "ticket-token") String ticketToken,Model model){
+        model.addAttribute("ticket",ticketRepository.findTicketByIdAndAccess_token(ticketId,ticketToken));
+        return "ticket/ticket_status";
+    }
+
 }

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
+      class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="">
+    <title>Helpdesk | Ticket status </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+</head>
+<body>
+<main class="flex">
+    <nav id="holder" th:insert="fragments/header :: header_fragment"></nav>
+    <section class="flex-1 bg-gray-900 bg-opacity-20">
+        <div th:if="${ticket == null}" class="flex justify-center items-center h-screen text-center text-black">
+            <form th:action="@{'/status'}"  method="get" id="ticketform" class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
+                <div id="content">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="ticket_id">Ticket number</label>
+                    <div class="mb-6">
+                        <input type="number" min="0" placeholder="Ticket number:" class="shadow appearance-none border rounded mb-3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="ticket-id" id="ticket_id" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="ticket-token">Ticket password</label>
+                        <input type="password" placeholder="Ticket password:" class="shadow appearance-none border rounded mb-3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="ticket-token" id="ticket-token" required>
+                    </div>
+                    <button type="submit"  class="bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline">Check status</button>
+                </div>
+            </form>
+        </div>
+        <div th:if="${ticket!=null}" class="overflow-hidden bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Ticket details</h3>
+                <input type="hidden" id="ticket-id" th:value="${ticket.id}">
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Status</dt>
+                        <dd th:text="${ticket.status.status}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Contact deatails</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                            <p class="font-bold"> Notifier Name: </p> <p th:text="${ticket.notifier_name}"></p>
+                            <p class="font-bold"> Notifier Surname: </p> <p th:text="${ticket.notifier_surname}"></p>
+                            <p class="font-bold"> Notifier Phone number: </p> <p th:text="${ticket.notifier_phonenumber}"></p>
+                        </dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Email address</dt>
+                        <dd th:text="${ticket.notifier_email}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Ticket datetime</dt>
+                        <dd th:text="${ticket.ticket_time}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Ticket description</dt>
+                        <dd th:text="${ticket.description}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Department</dt>
+                        <dd th:text="${ticket.department.name}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Assigned worker</dt>
+                        <dd th:text="${ticket.department.name}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+                    </div>
+                    <div  th:if="${ticket.getAttachmentSet()!=null and !ticket.getAttachmentSet().isEmpty()}" class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Attachments</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                            <ul role="list" class="divide-y divide-gray-200 rounded-md border border-gray-200">
+                                <li th:each="attachment : ${ticket.getAttachmentSet()}" class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
+                                    <div class="flex w-0 flex-1 items-center">
+                                        <svg class="h-5 w-5 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span th:text="${attachment.name}" class="ml-2 w-0 flex-1 truncate"></span>
+                                    </div>
+                                    <div class="ml-4 flex-shrink-0">
+                                        <a th:href="${attachment.url}" class="font-medium text-indigo-600 hover:text-indigo-500" download>Download</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
