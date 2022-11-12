@@ -6,11 +6,12 @@ import com.perfect.hepdeskapp.department.DepartmentRepository;
 import com.perfect.hepdeskapp.notification.NotifyService;
 import com.perfect.hepdeskapp.role.Role;
 import com.perfect.hepdeskapp.role.RoleRepository;
+import com.perfect.hepdeskapp.status.StatusRepository;
 import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,32 +20,43 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Set;
 
 @Controller
 public class UserController {
-    @Autowired
+    final
     TicketRepository ticketRepository;
-    @Autowired
+    final
     UserRepository userRepository;
-    @Autowired
+    final
     RoleRepository roleRepository;
-    @Autowired
+    final
+    StatusRepository statusRepository;
+    final
     DepartmentRepository departmentRepository;
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
-    @Autowired
+    final
     NotifyService notify;
-    @Autowired
+    final
     Environment environment;
+
+    public UserController(TicketRepository ticketRepository, UserRepository userRepository, RoleRepository roleRepository, StatusRepository statusRepository, DepartmentRepository departmentRepository, NotifyService notify, Environment environment) {
+        this.ticketRepository = ticketRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.statusRepository = statusRepository;
+        this.departmentRepository = departmentRepository;
+        this.notify = notify;
+        this.environment = environment;
+    }
+
     @RequestMapping(value = "/admin")
     public String adminPanel(Model model){
         List<Ticket> ticketList = ticketRepository.findAll();
         model.addAttribute("ticketList",ticketList);
         return "admin/admin_panel";
-
     }
     @RequestMapping("/admin/hr/managers")
     public String adminHrManagersPanel(Model model){
@@ -78,41 +90,78 @@ public class UserController {
         model.addAttribute("type","Users");
         return "admin/admin_hr";
     }
+    @RequestMapping("/manager/hr/workers")
+    public String managerWorkersPanel(Model model){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        String email = ((UserDetail)principal).getUsername();
+        User user = userRepository.findUserByEmail(email);
+        model.addAttribute("users",userRepository.findUserByDepartmentAndRole(user.getDepartment(),"WORKER"));
+        model.addAttribute("department",user.getDepartment());
+        return "manager/manager_hr";
+    }
     // API SECTION
-
-    @PostMapping( "/api/addUser")
+    @PostMapping("/admin/hr/user/lock")
+    @ResponseBody
+    public boolean lockAccount(@RequestParam("operation") boolean operation, @RequestParam("userid") Long userid){
+        User user = userRepository.findUserById(userid);
+        user.setEnabled(operation);
+        userRepository.saveAndFlush(user);
+        return operation;
+    }
+    @PostMapping( "/manager/api/addUser")
     public String addNewUser(HttpServletRequest request, @RequestParam("name") String name, @RequestParam("surname") String surname,
-                             @RequestParam("phone_number") String phone_number, @RequestParam("email") String email, @RequestParam("password") String password , @RequestParam("department") Long department, @RequestParam("role") Long role) throws IOException {
+                             @RequestParam("phone_number") String phone_number, @RequestParam("email") String email, @RequestParam("password") String password , @RequestParam("department") Long department, @RequestParam(value = "role", required = false) Long role) throws IOException {
         Department departmentObject = departmentRepository.findDepartmentById(department);
-        Role roleObject = roleRepository.findRoleById(role);
         passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode(password);
-        User user = new User(name,surname,phone_number,email,encodedPassword,departmentObject,roleObject);
-        userRepository.saveAndFlush(user);
-        String url = Utility.getSiteURL(request) + "/auth";
-        if(!environment.getProperty("smtp.status").equals("OFF")) {
-            try {
-                notify.sendEmail(email,"HelpDesk | The administrator has created an account for you!","<p>Hello, the helpdesk system administrator has created your account. Here are your access credentials.</p>" +
-                        "<p>Your login: "+ email+"</p>" +
-                        "<p>Your password: "+password+"</p>" +
-                        "<p> Click on this <a href='"+url+"'> link</a> to go to the login page.</p>" +
-                        "<p>We wish you to enjoy using our system.</p>");
-            }catch (MessagingException me){
-                me.printStackTrace();
-            }
-        }
-        return "redirect:/admin/hr/users";
+       if(role!=null) {
+           Role roleObject = roleRepository.findRoleById(role);
+           User user = new User(name, surname, phone_number, email,encodedPassword, departmentObject, roleObject);
+           userRepository.saveAndFlush(user);
+           String url = Utility.getSiteURL(request) + "/auth";
+           if (!environment.getProperty("smtp.status").equals("OFF")) {
+               try {
+                   notify.sendEmail(email, "HelpDesk | The administrator has created an account for you!", "<p>Hello, the helpdesk system administrator has created your account. Here are your access credentials.</p>" +
+                           "<p>Your login: " + email + "</p>" +
+                           "<p>Your password: " + password + "</p>" +
+                           "<p> Click on this <a href='" + url + "'> link</a> to go to the login page.</p>" +
+                           "<p>We wish you to enjoy using our system.</p>");
+               } catch (MessagingException me) {
+                   me.printStackTrace();
+               }
+           }
+           return "redirect:/admin/hr/users";
+       }else {
+           Role roleObject = roleRepository.findRoleByName("WORKER");
+           User user = new User(name, surname, phone_number, email,encodedPassword, departmentObject,roleObject);
+           userRepository.saveAndFlush(user);
+           String url = Utility.getSiteURL(request) + "/auth";
+           if (!environment.getProperty("smtp.status").equals("OFF")) {
+               try {
+                   notify.sendEmail(email, "HelpDesk | The manager has created an account for you!", "<p>Hello, the manager has created your account. Here are your access credentials.</p>" +
+                           "<p>Your login: " + email + "</p>" +
+                           "<p>Your password: " + password + "</p>" +
+                           "<p> Click on this <a href='" + url + "'> link</a> to go to the login page.</p>" +
+                           "<p>We wish you to enjoy using our system.</p>");
+               } catch (MessagingException me) {
+                   me.printStackTrace();
+               }
+           }
+           return "redirect:/manager/hr/workers";
+       }
     }
-    @PostMapping("/api/checkEmail")
+
+    @PostMapping("/manager/api/checkEmail")
     @ResponseBody
     public boolean checkEmail(@RequestParam("email") String email){
         User user = userRepository.findUserByEmail(email);
-        if(user!=null) return false;
-        return  true;
+        return user == null;
     }
-    @PostMapping("/api/editUser")
-    public String editUser(@RequestParam("userid") Long userid, @RequestParam(value = "name",required = false) String name, @RequestParam(value = "surname",required = false) String surname,
-                           @RequestParam(value = "phone_number",required = false) String phone_number, @RequestParam(value = "email",required = true) String email,@RequestParam(value = "password",required = false) String password , @RequestParam(value = "department",required = false) Long department, @RequestParam(value = "role",required = false) Long role){
+    @PostMapping("/manager/api/editUser")
+    public String editUser(HttpServletRequest request, @RequestParam("userid") Long userid, @RequestParam(value = "name",required = false) String name,
+                           @RequestParam(value = "surname",required = false) String surname, @RequestParam(value = "phone_number",required = false) String phone_number,
+                           @RequestParam(value = "email") String email,@RequestParam(value = "password",required = false) String password ,
+                           @RequestParam(value = "department",required = false) Long department, @RequestParam(value = "role",required = false) Long role) throws  IOException{
         User user = userRepository.findUserById(userid);
         user.setName(name);
         user.setSurname(surname);
@@ -123,20 +172,56 @@ public class UserController {
         if(department!=null) user.setDepartment(departmentRepository.findDepartmentById(department));
         if(role!=null) user.setRoleSet(roleRepository.findRoleById(role));
         userRepository.saveAndFlush(user);
+        String url = Utility.getSiteURL(request) + "/auth";
         if(!environment.getProperty("smtp.status").equals("OFF")) {
-
+            try {
+                if(password!=null){
+                    notify.sendEmail(user.getEmail(), "HelpDesk | Your data has been changed.", "<p>Hello, your data has been changed by the administrator/manager...</p>" +
+                            "<p>Your login: " + email + "</p>" +
+                            "<p>Your password: " + password + "</p>" +
+                            "<p> Click on this <a href='" + url + "'> link</a> to go to the login page.</p>" +
+                            "<p>Helpdesk system notification - please don't reply to this message.</p>");
+                }
+                else {
+                    notify.sendEmail(user.getEmail(), "HelpDesk | Your data has been changed.", "<p>Hello, your data has been changed by the administrator/manager...</p>" +
+                            "<p>Your login credentials have not changed</p>" +
+                            "<p> Click on this <a href='" + url + "'> link</a> to go to the login page.</p>" +
+                            "<p>Helpdesk system notification - please don't reply to this message.</p>");
+                }
+            } catch (MessagingException me) {
+                me.printStackTrace();
+            }
         }
-        return "redirect:/admin/hr/users";
+        // Do zmiany przekierowanie
+        if(role!= null) return "redirect:/admin/hr/users";
+        else return "redirect:/manager/hr/workers";
     }
-    @GetMapping("/api/getUserRoles")
+    @PostMapping("/manager/api/deleteUser")
+    @ResponseBody
+    public String deleteUserFromDepartment(@RequestParam("userid") Long userid) throws IOException{
+        User user = userRepository.findUserById(userid);
+        user.setDepartment(departmentRepository.findDepartmentByName("UNALLOCATED"));
+        user.setEnabled(false);
+        if(!environment.getProperty("smtp.status").equals("OFF")) {
+            try {
+                notify.sendEmail(user.getEmail(), "HelpDesk | Your account has been deactivated!", "<p>Hello, your account has been deactivated. To re-enable it, contact your administrator..</p>" +
+                        "<p>Helpdesk system notification - please don't reply to this message.</p>");
+            } catch (MessagingException me) {
+                me.printStackTrace();
+            }
+        }
+        userRepository.saveAndFlush(user);
+        return "Successful";
+    }
+    @GetMapping("/manager/api/getUserRoles")
     @ResponseBody
     public Set<Role> userRoleSet(@RequestParam("userid") Long userid){
         User user = userRepository.findUserById(userid);
         return user.getRoleSet();
     }
-    @PostMapping("/api/deleteUserRole")
+    @PostMapping("/manager/api/deleteUserRole")
     @ResponseBody
-    public String deleteRole(@RequestParam("role") Long role, @RequestParam("userid") Long userid){
+    public String deleteUserRole(@RequestParam("role") Long role, @RequestParam("userid") Long userid){
         User user = userRepository.findUserById(userid);
         if(user != null) {
             user.removeRole(roleRepository.findRoleById(role));
@@ -144,6 +229,23 @@ public class UserController {
             return "Success";
         }
         else return  "Error user not found";
+    }
+
+    @RequestMapping("/admin/departments")
+    public String departments(Model model){
+        model.addAttribute("departments",departmentRepository.findAll());
+        return "admin/admin_departments";
+    }
+
+    // Profiles section
+    // Request Paths to users profile and manage it.
+    @RequestMapping("/api/profile")
+    public String userProfile(Model model){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        String email = ((UserDetail)principal).getUsername();
+        User user = userRepository.findUserByEmail(email);
+        model.addAttribute("user",user);
+        return "user_profile";
     }
 
 }

@@ -22,11 +22,12 @@ import javax.sql.DataSource;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final DataSource dataSource;
-    @Autowired
+    final
     UserRepository userRepository;
 
-    public WebSecurityConfig(DataSource dataSource) {
+    public WebSecurityConfig(DataSource dataSource, UserRepository userRepository) {
         this.dataSource = dataSource;
+        this.userRepository = userRepository;
     }
     @Bean
     public UserDetailsService userDetailsService(){
@@ -50,10 +51,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
-                .antMatchers("/","/showstatus","/status","/error","/sendTicket","/searchby","/home","/getAllTickets").permitAll()
+                .antMatchers("/","/showstatus","/status","/error","/sendTicket","/home","/404","/*").permitAll()
                 .antMatchers("/admin","/admin/**").hasAuthority("ADMIN")
-                .antMatchers("/t","/t/**","tickets","/tickets/**").hasAnyAuthority("ADMIN","USER","DEPARTMENT_BOSS")
-                .antMatchers("/api","/api/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS","USER")
+                .antMatchers("/manager","/manager/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS")
+                .antMatchers("/apiv2","/apiv2/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS")
+                .antMatchers("/t","/t/**","tickets","/tickets/**").hasAnyAuthority("ADMIN","WORKER","DEPARTMENT_BOSS")
+                .antMatchers("/api","/api/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS","WORKER")
                 .antMatchers("/resources/*","/resources/**/*", "/uploads/**/*", "/uploads/*","/css/**","/js/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin().loginPage("/auth").failureUrl("/auth")

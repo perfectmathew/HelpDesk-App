@@ -39,8 +39,8 @@ public class UserDetailService implements UserDetailsService {
 
     public void updateUserPassword(User user, String newPassword){
         BCryptPasswordEncoder Encoder = new BCryptPasswordEncoder();
-        String passowrdEncoded =  Encoder.encode(newPassword);
-        user.setPassword(passowrdEncoded);
+        String passwordEncoded =  Encoder.encode(newPassword);
+        user.setPassword(passwordEncoded);
         user.setPassword_token(null);
         userRepository.saveAndFlush(user);
     }

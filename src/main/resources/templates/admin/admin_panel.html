@@ -10,7 +10,7 @@
     <title>HelpDesk | Admin Panel</title>
     <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
     <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
     <link rel="stylesheet" type="text/css" href="/resources/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,8 +58,6 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
     </section>
 </main>

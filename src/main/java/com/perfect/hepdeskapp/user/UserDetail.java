@@ -24,6 +24,7 @@ public class UserDetail implements UserDetails {
         }
         return authorityList;
     }
+
     public Long gtId() {return user.getId();}
     @Override
     public String getPassword() {
@@ -52,6 +53,8 @@ public class UserDetail implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return user.isEnabled();
     }
+
+
 }

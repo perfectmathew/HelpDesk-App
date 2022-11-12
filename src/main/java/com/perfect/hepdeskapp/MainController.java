@@ -15,4 +15,8 @@ public class MainController {
     public String index(){
         return "index";
     }
+
+    @RequestMapping("/404")
+    public String error404() { return "error"; }
+
 }

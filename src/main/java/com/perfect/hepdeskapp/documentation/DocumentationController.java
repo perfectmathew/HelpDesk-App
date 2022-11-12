@@ -66,6 +66,7 @@ public class DocumentationController {
         documentationRepository.saveAndFlush(documentation);
         return "redirect:/t/"+ticket;
     }
+
     @GetMapping("/api/deleteDocumentation/{documentationId}")
     public String deleteDocumentation(@PathVariable("documentationId") Long documentation){
         Documentation documentationObject = documentationRepository.findDocumentationById(documentation);

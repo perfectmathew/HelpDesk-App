@@ -8,8 +8,11 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="description" content="">
   <title th:text="${'HelpDesk | Ticket no.'+ticket.id}"> </title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+  <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,11 +61,34 @@
           </div>
           <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Department</dt>
-            <dd th:text="${ticket.department.name}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+            <dd  class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <div id="edit-department-name-section">
+              <p id="department-name" th:text="${ticket.department.name}"></p>
+              </div>
+              <div id="edit-button-section">
+              <button sec:authorize="hasAuthority('ADMIN')" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="editDepartmentBtn inline-block px-6 py-2.5 bg-yellow-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-yellow-700 hover:shadow-lg focus:bg-yellow-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-yellow-800 active:shadow-lg transition duration-150 ease-in-out"
+              > <i class='fa-solid fa-pen'></i> Change department</button>
+              </div>
+            </dd>
           </div>
           <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Assigned worker</dt>
-            <dd th:text="${ticket.department.name}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+            <dd sec:authorize="hasAnyAuthority('ADMIN','DEPARTMENT_BOSS')" th:if="${ticket.getUserList().isEmpty()}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <select id="worker-select" name="worker-select">
+                <option th:each="worker : ${workerList}" th:value="${worker.id}" th:text="${worker.name + ' ' + worker.surname}"></option>
+              </select>
+              <button type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="assignUserBtn inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
+              > <i class="fa-solid fa-check"></i> Assign</button>
+            </dd>
+            <dd id="assigned-worker-section" th:if="${!ticket.getUserList().isEmpty() or ticket.getUserList() != null}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <span th:each="user : ${ticket.getUserList()}" class='inline-flex items-center py-1 px-2 mr-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-200 dark:text-blue-800'>
+                      <span th:text="${user.name + ' ' + user.surname}"></span>
+                      <button th:value="${user.id}" type='button'  class='deleteUsrBtn inline-flex items-center p-0.5 ml-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-300 dark:hover:text-blue-900' data-dismiss-target='#badge-dismiss-default' aria-label='Remove'>
+                          <svg  class='w-3.5 h-3.5' aria-hidden='true' fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z' clip-rule='evenodd'></path></svg>
+                          <span class='sr-only'>Remove</span>
+                      </button>
+                    </span>
+            </dd>
           </div>
           <div  th:if="${ticket.getAttachmentSet()!=null and !ticket.getAttachmentSet().isEmpty()}" class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Attachments</dt>
@@ -127,21 +153,9 @@
     </div>
   </section>
 </main>
-<script>
-  $(document).on('click','#editButton',function () {
-    let doc_description = $('#docs-description').text()
-    $('#documentation-area').empty().append("              <p class=\"font-bold\">Documentation content:</p>\n" +
-            "              <form action=\"/api/editDocumentation\" enctype=\"multipart/form-data\" method=\"post\">\n" +
-            "<input type='hidden' name='documentationid' value='"+$('#documentation-id').val()+"'>" +
-            "                <input type=\"hidden\" name=\"ticket\" value='"+$('#ticket-id').val()+"'>\n" +
-            "                <textarea name=\"content\"  class=\"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline\" required>\n" + doc_description +
-            "                     </textarea>\n" +
-            "                <p class=\"font-bold\">Attachments:</p>\n" +
-            "                <input type=\"file\" id=\"attachments\" name=\"attachments\" multiple=\"multiple\">\n" +
-            "                <button type=\"submit\" class=\"bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline\">Edit documentation</button>\n" +
-            "              </form>")
 
-  })
-</script>
+<script type="application/javascript" th:src="@{/js/functions.js}"></script>
+<script type="application/javascript" src="/resources/js/main.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>

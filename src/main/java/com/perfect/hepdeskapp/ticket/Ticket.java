@@ -1,9 +1,11 @@
 package com.perfect.hepdeskapp.ticket;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.task.Task;
+import com.perfect.hepdeskapp.user.User;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -21,7 +23,7 @@ public class Ticket {
     private String notifier_phonenumber;
     private String notifier_email;
     private String access_token;
-    private Date ticket_time;
+    private Timestamp ticket_time;
     @ManyToOne
     @JoinColumn(name = "statusid")
     private Status status;
@@ -42,6 +44,14 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "task_id")
     )
     private Set<Task> ticketTasksSet = new HashSet<>();
+    @JsonIgnore
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_tickets",
+            joinColumns = @JoinColumn(name = "ticket_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> userList = new ArrayList<>();
     public Ticket() {
     }
 
@@ -105,7 +115,7 @@ public class Ticket {
         return ticket_time;
     }
 
-    public void setTicket_time(Date ticket_time) {
+    public void setTicket_time(Timestamp ticket_time) {
         this.ticket_time = ticket_time;
     }
 
@@ -131,5 +141,15 @@ public class Ticket {
 
     public void setAttachmentSet(List<Attachment> attachmentSet) {
         this.attachmentSet = attachmentSet;
+    }
+
+    public List<User> getUserList() {
+        return userList;
+    }
+    public void addUserToTicket(User user){
+        this.userList.add(user);
+    }
+    public void setUserList(List<User> userList) {
+        this.userList = userList;
     }
 }

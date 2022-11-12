@@ -1,10 +1,20 @@
 package com.perfect.hepdeskapp.config;
 
 import com.perfect.hepdeskapp.HepDeskAppApplication;
+import com.perfect.hepdeskapp.user.User;
+import com.perfect.hepdeskapp.user.UserDetail;
+import com.perfect.hepdeskapp.user.UserDetailService;
+import com.perfect.hepdeskapp.user.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -22,6 +32,10 @@ import java.util.Properties;
 public class SettingsController {
     final
     Environment environment;
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    UserRepository userRepository;
     public SettingsController(Environment environment) {
         this.environment = environment;
     }
@@ -78,6 +92,19 @@ public class SettingsController {
     public String update(){
 
         return "redirect:/admin/settings";
+    }
+    @PostMapping("/admin/settings/checkPassword")
+    @ResponseBody
+    public String checkAdminPassword(@RequestParam("password") String password){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        String email = ((UserDetail)principal).getUsername();
+        User user = userRepository.findUserByEmail(email);
+        if(bCryptPasswordEncoder.matches(password, user.getPassword())){
+            return "Successful";
+        }else {
+            return "Password not match";
+        }
     }
     @GetMapping("/admin/settings/check-smtp")
     @ResponseBody
@@ -150,6 +177,7 @@ public class SettingsController {
             try {
                 File myConfiguration = new File(path);
                 if (myConfiguration.createNewFile()) {
+
                 } else {
                     WriteConfig("app.maintenance.mode = "+site_maintenance_mode+"\n" +
                             "app.version = 1.0a\n" +

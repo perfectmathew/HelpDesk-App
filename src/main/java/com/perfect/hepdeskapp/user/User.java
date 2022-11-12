@@ -1,11 +1,15 @@
 package com.perfect.hepdeskapp.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.role.Role;
+import com.perfect.hepdeskapp.ticket.Ticket;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -20,6 +24,7 @@ public class User {
     private String phone_number;
     private String email;
     private String password;
+    private boolean enabled;
     @ManyToOne
     @JoinColumn(name = "departmentid")
     private Department department;
@@ -29,7 +34,11 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+
     private Set<Role> roleSet = new HashSet<>();
+    @JsonIgnore
+    @ManyToMany(mappedBy = "userList")
+    private List<Ticket> userTickets = new ArrayList<>();
     private String password_token;
     public User(){
 
@@ -43,7 +52,22 @@ public class User {
         this.department = department;
         this.roleSet.add(role);
     }
-
+    public User(String name, String surname, String phone_number, String email, Department department, Role role) {
+        this.name = name;
+        this.surname = surname;
+        this.phone_number = phone_number;
+        this.email = email;
+        this.department = department;
+        this.roleSet.add(role);
+    }
+    public User(String name, String surname, String phone_number, String email,String password, Department department) {
+        this.name = name;
+        this.surname = surname;
+        this.phone_number = phone_number;
+        this.email = email;
+        this.password = password;
+        this.department = department;
+    }
     public Long getId() {
         return id;
     }
@@ -115,5 +139,24 @@ public class User {
 
     public void setPassword_token(String password_token) {
         this.password_token = password_token;
+    }
+
+    public List<Ticket> getUserTickets() {
+        return userTickets;
+    }
+
+    public void addTicketToUser(Ticket ticket) {
+        this.userTickets.add(ticket);
+    }
+    public void removeTicketFromUser(Ticket ticket){
+        this.userTickets.remove(ticket);
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
