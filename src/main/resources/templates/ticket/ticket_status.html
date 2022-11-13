@@ -88,7 +88,7 @@
                                         <span th:text="${attachment.name}" class="ml-2 w-0 flex-1 truncate"></span>
                                     </div>
                                     <div class="ml-4 flex-shrink-0">
-                                        <a th:href="${attachment.url}" class="font-medium text-indigo-600 hover:text-indigo-500" download>Download</a>
+                                        <a th:href="@{attachment.url}" class="font-medium text-indigo-600 hover:text-indigo-500" download>Download</a>
                                     </div>
                                 </li>
                             </ul>
