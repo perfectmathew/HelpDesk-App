@@ -158,8 +158,6 @@
     </div>
 </main>
 <script>
-    let token = $('#_csrf').attr('content');
-    let header = $('#_csrf_header').attr('content');
     $(document).on('click','#hide-modal',function (){
         $('#Modal').hide();
     })
@@ -211,8 +209,8 @@
         $('#Modal').show();
     })
 </script>
+<script type="application/javascript" th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/manager_functions.js}"></script>
-<script type="application/javascript" src="/resources/js/main.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <div th:insert="fragments/modals :: modal_fragment"></div>
 </body>

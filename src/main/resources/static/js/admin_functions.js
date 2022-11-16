@@ -1,5 +1,3 @@
-let token = $('#_csrf').attr('content');
-let header = $('#_csrf_header').attr('content');
 let response_content = null;
 let current_tr = null
 let db_connection_string = ""

@@ -158,7 +158,7 @@ public class TicketController {
         ticketRepository.delete(ticket);
         return "Successfully";
     }
-    @PostMapping("/apiv2/assignWorker")
+    @PostMapping("/manager/api/assignWorker")
     @ResponseBody
     public String assignWorkerToTicket(@RequestParam("user_id") Long user_id, @RequestParam("ticket_id") Long ticket_id){
         User user = userRepository.findUserById(user_id);

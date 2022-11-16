@@ -1,9 +1,7 @@
-let token = $('#_csrf').attr('content');
-let header = $('#_csrf_header').attr('content');
 let department_name;
 $(document).on('click','.assignUserBtn',function () {
     $.ajax({
-        url: '/apiv2/assignWorker',
+        url: '/manager/api/assignWorker',
         type: 'post',
         data: { 'user_id' : $('#worker-select').val(), 'ticket_id' : $('#ticket-id').val() },
         beforeSend: function(xhr) {

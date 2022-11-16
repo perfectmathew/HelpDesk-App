@@ -9,7 +9,6 @@
   <meta name="description" content="">
   <title th:text="${'HelpDesk | Ticket no.'+ticket.id}"> </title>
   <link rel="stylesheet" th:href="@{/css/main.css}" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
   <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -153,9 +152,8 @@
     </div>
   </section>
 </main>
-
+<script type="application/javascript" th:src="@{/js/main.js}"></script>
 <script type="application/javascript" th:src="@{/js/functions.js}"></script>
-<script type="application/javascript" src="/resources/js/main.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
