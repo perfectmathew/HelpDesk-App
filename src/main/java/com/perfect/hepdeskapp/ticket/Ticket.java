@@ -3,6 +3,7 @@ package com.perfect.hepdeskapp.ticket;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.department.Department;
+import com.perfect.hepdeskapp.priority.Priority;
 import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.task.Task;
 import com.perfect.hepdeskapp.user.User;
@@ -25,8 +26,12 @@ public class Ticket {
     private String access_token;
     private Timestamp ticket_time;
     @ManyToOne
+    @JoinColumn(name = "priority_id")
+    private Priority priority;
+    @ManyToOne
     @JoinColumn(name = "statusid")
     private Status status;
+
     @ManyToOne
     @JoinColumn(name = "departmentid")
     private Department department;
@@ -118,6 +123,8 @@ public class Ticket {
     public void setTicket_time(Timestamp ticket_time) {
         this.ticket_time = ticket_time;
     }
+
+
 
     public Status getStatus() {
         return status;
