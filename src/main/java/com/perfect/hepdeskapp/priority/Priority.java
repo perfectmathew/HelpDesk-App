@@ -1,15 +1,16 @@
 package com.perfect.hepdeskapp.priority;
 
+
 import javax.persistence.*;
 
 @Entity
-@Table(name = "priority",schema = "public")
-public class Priority {
+@Table(name = "priority", schema = "public")
+public final class Priority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String priority_name;
-    private long priority_value;
+    private String priority_value;
 
     public Long getId() {
         return id;
@@ -27,11 +28,11 @@ public class Priority {
         this.priority_name = priority_name;
     }
 
-    public long getPriority_value() {
+    public String getPriority_value() {
         return priority_value;
     }
 
-    public void setPriority_value(long priority_value) {
+    public void setPriority_value(String priority_value) {
         this.priority_value = priority_value;
     }
 }

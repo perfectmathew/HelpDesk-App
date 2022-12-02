@@ -1,6 +1,7 @@
 package com.perfect.hepdeskapp.ticket;
 
 import com.perfect.hepdeskapp.department.Department;
+import com.perfect.hepdeskapp.user.User;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,12 +16,14 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     public Ticket findTicketById(@Param("id") Long id);
     @Query("SELECT t FROM Ticket t WHERE t.id = :id AND t.access_token = :token")
     public Ticket findTicketByIdAndAccess_token(@Param("id") Long id, @Param("token") String token);
-    @Query("SELECT t FROM Ticket t ORDER BY t.ticket_time DESC")
+    @Query("SELECT t FROM Ticket t ORDER BY t.priority.id DESC, t.ticket_time")
     public List<Ticket> findAllByTicket_time();
     @Query("SELECT t FROM Ticket t")
     public List<Ticket> findAllByTicket_time(Sort sort);
-    @Query("SELECT t FROM Ticket t WHERE t.department = :department")
-    public List<Ticket> findTicketsByDepartment(@Param("department")Department department,Sort sort);
+    @Query("SELECT t FROM Ticket t WHERE t.department = :department ORDER BY t.priority.id DESC, t.ticket_time")
+    public List<Ticket> findTicketsByDepartment(@Param("department") Department department);
+    @Query("SELECT DISTINCT t FROM Ticket t JOIN t.userList ul JOIN ul.userTickets ut where ul.email = :email")
+    public List<Ticket> findTicketsByUserListContaining(@Param("email")  String email);
     @Query("SELECT t FROM Ticket t WHERE t.status.status = :status")
     public List<Ticket> findAllByStatus(@Param("status") String status);
     @Query("SELECT t FROM Ticket t WHERE t.status.id = :status")

@@ -8,6 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>HelpDesk | Auth</title>
     <link rel="stylesheet" th:href="@{/css/main.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/toastify.css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +23,6 @@
 <main class="flex">
     <nav id="holder" th:insert="fragments/header :: header_fragment"></nav>
     <section class="flex-1 bg-gray-900 bg-opacity-20">
-        <div class="bg-red-500 text-white" role="alert" th:text="${error}" th:if="${error}"></div>
         <div class="flex justify-center items-center h-screen text-center text-black">
             <form th:action="@{/auth}" method="post" class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
                 <svg class="block m-auto" height="50" width="50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -106,12 +106,18 @@
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email address</label>
                 <div class="mb-4">
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="email" name="email" id="email" placeholder="Email address" required>
+                    <p class="mt-2 text-rose-500 hidden">Username</p>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="password" name="password" id="password" placeholder="********" required>
                 </div>
+                <div class="mb-3">
+                    <p id="message" class="mt-2 text-red-500 hidden">Username or password not found!</p>
+                </div>
                 <button type="submit" class="bg-gray-800 hover:bg-gray-600  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign In</button>
+                <input type="hidden"  class="hidden" th:if="${authMsg != null}" id="responseMessage" th:value="${authMsg}">
+                <input type="hidden"  class="hidden" th:if="${authLogoutMessage != null}" id="logoutMessage" th:value="${authLogoutMessage}">
                 <p class="text-gray-600">Forgot your password? <strong class="text-gray-800" id="reset_password">Reset</strong> password.</p>
                 <p class="text-gray-600">Don't have an account? <strong class="text-gray-800">Ask</strong>  your administrator to create an account for you.</p>
             </form>
@@ -152,9 +158,19 @@
     </section>
 </main>
 <script>
-    $('#reset_password').on('click',function (){
-        $('#resetPasswordModal').fadeIn(1000);
+    $(document).ready(function () {
+        if($('#responseMessage').length) {
+            notification($('#responseMessage').val());
+            $('#password').removeClass('border').addClass('border-2 border-red-500')
+            $('#email').removeClass('border').addClass('border-2 border-red-500')
+            $('#message').removeClass('hidden')
+        }
+        if($('#logoutMessage').length){
+            notification($('#logoutMessage').val());
+        }
     })
 </script>
+<script type="application/javascript" th:src="@{/js/main.js}"></script>
+<script type="text/javascript" th:src="@{/js/toastify.js}"></script>
 </body>
 </html>

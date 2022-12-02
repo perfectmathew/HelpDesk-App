@@ -9,6 +9,7 @@
   <meta name="description" content="">
   <title th:text="${'HelpDesk | Ticket no.'+ticket.id}"> </title>
   <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" type="text/css" th:href="@{/css/toastify.css}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
   <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -18,7 +19,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
@@ -32,14 +32,17 @@
         <h3 class="text-lg font-medium leading-6 text-gray-900">Ticket details</h3>
         <input type="hidden" id="ticket-id" th:value="${ticket.id}">
       </div>
-      <div class="border-t border-gray-200">
+      <div class="border-t border-gray-200 overflow-y-scroll w-full" style="height: 93vh;">
         <dl>
           <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">Status</dt>
-            <dd th:text="${ticket.status.status}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+            <dt class="text-sm font-medium text-gray-500">Status/Priority</dt>
+            <dd  class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <p id="ticketStatus">Status: <span class="ticketStatusValue" th:text="${ticket.status.status}"></span><button type="button" class="ml-2 editStatusBtn text-white w-6 bg-yellow-500 hover:text-black rounded ease-in-out"><i class="fa-solid fa-pen-to-square"></i></button></p>
+              <p id="ticketPriority">Priority: <span th:class="${ticket.priority.priority_name == 'HIGH' ? 'ticketPriorityValue text-red-500 font-bold' : 'ticketPriorityValue text-gray-900 font-semibold'}" th:text="${ticket.priority.priority_name}"></span><button type="button" class="ml-2 editPriorityBtn text-white w-6 bg-yellow-500 hover:text-black rounded ease-in-out"><i class="fa-solid fa-pen-to-square"></i></button></p>
+            </dd>
           </div>
           <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">Contact deatails</dt>
+            <dt class="text-sm font-medium text-gray-500">Contact details</dt>
             <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               <p class="font-bold"> Notifier Name: </p> <p th:text="${ticket.notifier_name}"></p>
               <p class="font-bold"> Notifier Surname: </p> <p th:text="${ticket.notifier_surname}"></p>
@@ -70,23 +73,45 @@
               </div>
             </dd>
           </div>
-          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">Assigned worker</dt>
-            <dd sec:authorize="hasAnyAuthority('ADMIN','DEPARTMENT_BOSS')" th:if="${ticket.getUserList().isEmpty()}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-              <select id="worker-select" name="worker-select">
+          <div sec:authorize="hasAnyAuthority('ADMIN','DEPARTMENT_BOSS')" class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Assigned workers</dt>
+            <dd   class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <section class="flex flex-wrap justify-center items-center">
+                <div class="w-1/3">
+                <p class="mb-2 text-sm font-semibold">All users available</p>
+                  <input id="search-for-worker" type="text" class="m-2 rounded shadow-sm" placeholder="Search worker" /><br>
+              <select size="6" id="available-workers" class="rounded shadow-sm">
                 <option th:each="worker : ${workerList}" th:value="${worker.id}" th:text="${worker.name + ' ' + worker.surname}"></option>
               </select>
-              <button type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="assignUserBtn inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
-              > <i class="fa-solid fa-check"></i> Assign</button>
+                </div>
+                <div class="w-1/3">
+              <button type="button" class="ml-2 mr-2 assignWorkerBtn text-white w-6 bg-green-500 hover:text-black rounded ease-in-out"><i class="fa-solid fa-right-long"></i></button>
+              <button type="button" class="ml-2 mr-2 unassignWorkerBtn text-white w-6 bg-red-500 hover:text-black rounded ease-in-out"><i class="fa-solid fa-left-long"></i></button>
+                </div>
+                <div class="w-1/3">
+              <p class="mb-2 text-sm font-semibold">Assigned users</p>
+              <select size="6" id="assigned-workers" class="rounded shadow-sm">
+                <option th:if="${ticket.getUserList().isEmpty()}" value="NONE">NONE</option>
+                <option th:if="${!ticket.getUserList().isEmpty()}" th:each="user : ${ticket.getUserList()}" th:value="${user.id}" th:text="${user.name + ' ' +user.surname}">
+                  {{USER NAME}}</option>
+              </select>
+                </div>
+              </section>
             </dd>
-            <dd id="assigned-worker-section" th:if="${!ticket.getUserList().isEmpty() or ticket.getUserList() != null}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-              <span th:each="user : ${ticket.getUserList()}" class='inline-flex items-center py-1 px-2 mr-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-200 dark:text-blue-800'>
-                      <span th:text="${user.name + ' ' + user.surname}"></span>
-                      <button th:value="${user.id}" type='button'  class='deleteUsrBtn inline-flex items-center p-0.5 ml-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-300 dark:hover:text-blue-900' data-dismiss-target='#badge-dismiss-default' aria-label='Remove'>
-                          <svg  class='w-3.5 h-3.5' aria-hidden='true' fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z' clip-rule='evenodd'></path></svg>
-                          <span class='sr-only'>Remove</span>
-                      </button>
-                    </span>
+          </div>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Tasks</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <section class="flex flex-col">
+                <div>
+                  <span id="task-section">
+                  <button th:if="${!ticket.getTicketTasksSet().isEmpty()}" th:each="task : ${ticket.getTicketTasksSet()}" th:value="${task.id}" th:text="${task.task}" type="button" th:class="${task.done == true ? 'editTaskBtn m-2 inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out' : 'editTaskBtn m-2 inline-block px-6 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out'}"
+                  >{{TASK NAME}}</button>
+                  </span>
+                  <button sec:authorize="hasAnyAuthority('ADMIN','DEPARTMENT_BOSS')" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="addTaskBtn m-2 inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
+                  ><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </section>
             </dd>
           </div>
           <div  th:if="${ticket.getAttachmentSet()!=null and !ticket.getAttachmentSet().isEmpty()}" class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -112,14 +137,14 @@
             <dd id="documentation-area" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               <p class="text-right">
                 <span id="editButton" class="text-gray-800 font-bold">Edit</span>
-             <a th:href="${'/api/deleteDocumentation/'+ documentation.id}"> <span class="text-red-700 font-bold">Delete</span></a>
+             <a th:href="${'/manager/api/deleteDocumentation/'+ documentation.id}"> <span class="text-red-700 font-bold">Delete</span></a>
               </p>
               <input type="hidden" id="documentation-id" th:value="${documentation.id}">
               <p class="font-bold">Documentation content:</p>
               <p id="docs-description" th:text="${documentation.description}"></p>
               <p class="font-bold">Attachments:</p>
               <ul th:if="${documentation.getDocumentationAttachmentsSet() != null and !documentation.getDocumentationAttachmentsSet().isEmpty()}" role="list" class="divide-y divide-gray-200 rounded-md border border-gray-200">
-                <li th:each="docs : ${documentation.getDocumentationAttachmentsSet()}" class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
+                <li th:value="${docs.id}" th:each="docs : ${documentation.getDocumentationAttachmentsSet()}" class="flex items-center justify-between py-3 pl-3 pr-4 text-sm">
                   <div class="flex w-0 flex-1 items-center">
                     <svg class="h-5 w-5 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clip-rule="evenodd" />
@@ -128,6 +153,7 @@
                   </div>
                   <div class="ml-4 flex-shrink-0">
                     <a th:href="${docs.url}" class="font-medium text-indigo-600 hover:text-indigo-500" download>Download</a>
+                    <button th:value="${docs.id}" type="button" class="deleteDocumentationAttachment font-medium text-red-600 hover:text-red-500">Delete</button>
                   </div>
                 </li>
               </ul>
@@ -137,7 +163,7 @@
             <dt class="text-sm font-medium text-gray-500">Documentation</dt>
             <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
               <p class="font-bold">Documentation content:</p>
-              <form th:action="@{/api/addDocumentation}" enctype="multipart/form-data" method="post">
+              <form th:action="@{/manager/api/addDocumentation}" enctype="multipart/form-data" method="post">
                 <input type="hidden" name="ticket" th:value="${ticket.id}">
                 <textarea name="content" placeholder="Documentation content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                      </textarea>
@@ -153,7 +179,9 @@
   </section>
 </main>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
-<script type="application/javascript" th:src="@{/js/functions.js}"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script type="application/javascript" th:src="@{/js/manager_functions.js}"></script>
+<script type="text/javascript" th:src="@{/js/toastify.js}"></script>
+<div th:insert="fragments/modals :: task_modal"></div>
+<div th:insert="fragments/modals :: edit_task_modal"></div>
 </body>
 </html>

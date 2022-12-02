@@ -2,7 +2,6 @@ package com.perfect.hepdeskapp.security;
 
 import com.perfect.hepdeskapp.user.UserDetailService;
 import com.perfect.hepdeskapp.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -54,16 +53,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/","/showstatus","/status","/error","/sendTicket","/home","/404").permitAll()
                 .antMatchers("/admin","/admin/**").hasAuthority("ADMIN")
                 .antMatchers("/manager","/manager/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS")
-                .antMatchers("/apiv2","/apiv2/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS")
                 .antMatchers("/t","/t/**","tickets","/tickets/**").hasAnyAuthority("ADMIN","WORKER","DEPARTMENT_BOSS")
+                .antMatchers("/worker","/worker/**").hasAuthority("WORKER")
                 .antMatchers("/api","/api/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS","WORKER")
                 .antMatchers("/resources/*","/resources/**/*", "/uploads/**/*", "/uploads/*","/css/**","/js/**").permitAll()
                 .anyRequest().authenticated()
-                .and().formLogin().loginPage("/auth").failureUrl("/auth")
+                .and().formLogin().loginPage("/auth").failureUrl("/auth?error=true")
                 .usernameParameter("email").passwordParameter("password").defaultSuccessUrl("/direct")
                 .permitAll()
                 .and()
-                .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/auth").permitAll();
+                .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/auth?logout=true").permitAll();
     }
     @Bean
     public PersistentTokenRepository persistentTokenRepository(){

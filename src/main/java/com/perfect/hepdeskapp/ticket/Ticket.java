@@ -1,14 +1,14 @@
 package com.perfect.hepdeskapp.ticket;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.perfect.hepdeskapp.priority.Priority;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.department.Department;
-import com.perfect.hepdeskapp.priority.Priority;
 import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.task.Task;
 import com.perfect.hepdeskapp.user.User;
-
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -18,15 +18,21 @@ public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
     private String description;
+    @NotNull
     private String notifier_name;
+    @NotNull
     private String notifier_surname;
+    @NotNull
     private String notifier_phonenumber;
+    @NotNull
     private String notifier_email;
+    @NotNull
     private String access_token;
     private Timestamp ticket_time;
     @ManyToOne
-    @JoinColumn(name = "priority_id")
+    @JoinColumn(name = "priority")
     private Priority priority;
     @ManyToOne
     @JoinColumn(name = "statusid")
@@ -57,7 +63,13 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> userList = new ArrayList<>();
-    public Ticket() {
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 
     public Long getId() {
@@ -124,8 +136,6 @@ public class Ticket {
         this.ticket_time = ticket_time;
     }
 
-
-
     public Status getStatus() {
         return status;
     }
@@ -146,17 +156,20 @@ public class Ticket {
         return attachmentSet;
     }
 
-    public void setAttachmentSet(List<Attachment> attachmentSet) {
-        this.attachmentSet = attachmentSet;
-    }
-
     public List<User> getUserList() {
         return userList;
     }
     public void addUserToTicket(User user){
         this.userList.add(user);
     }
-    public void setUserList(List<User> userList) {
-        this.userList = userList;
+    public void deleteUserFromTicket(User user) { this.userList.remove(user); }
+    public Set<Task> getTicketTasksSet() {
+        return ticketTasksSet;
+    }
+    public void addTaskToTicket(Task task) {
+        this.ticketTasksSet.add(task);
+    }
+    public void removeTaskFromTicket(Task task) {
+        this.ticketTasksSet.remove(task);
     }
 }

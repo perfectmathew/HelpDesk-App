@@ -12,6 +12,7 @@ import com.perfect.hepdeskapp.ticket.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -99,6 +100,13 @@ public class UserController {
         model.addAttribute("department",user.getDepartment());
         return "manager/manager_hr";
     }
+    @GetMapping("/manager/api/getWorkersToAssign")
+    @ResponseBody
+    public List<User> getWorkersToAssign(@RequestParam("search_term") String search_term, @RequestParam("department_name") String department_name){
+        if (search_term!=null && !search_term.equals(""))
+        return userRepository.findUserByNameAndSurnameAndDepartmentAndRole(search_term,departmentRepository.findDepartmentByName(department_name),"WORKER");
+        else return userRepository.findUserByDepartmentAndRole(departmentRepository.findDepartmentByName(department_name),"WORKER");
+    }
     // API SECTION
     @PostMapping("/admin/hr/user/lock")
     @ResponseBody
@@ -117,6 +125,7 @@ public class UserController {
        if(role!=null) {
            Role roleObject = roleRepository.findRoleById(role);
            User user = new User(name, surname, phone_number, email,encodedPassword, departmentObject, roleObject);
+           user.setEnabled(true);
            userRepository.saveAndFlush(user);
            String url = Utility.getSiteURL(request) + "/auth";
            if (!environment.getProperty("smtp.status").equals("OFF")) {
@@ -130,10 +139,11 @@ public class UserController {
                    me.printStackTrace();
                }
            }
-           return "redirect:/admin/hr/users";
+           return "redirect:/admin/hr/workers";
        }else {
            Role roleObject = roleRepository.findRoleByName("WORKER");
            User user = new User(name, surname, phone_number, email,encodedPassword, departmentObject,roleObject);
+           user.setEnabled(true);
            userRepository.saveAndFlush(user);
            String url = Utility.getSiteURL(request) + "/auth";
            if (!environment.getProperty("smtp.status").equals("OFF")) {
@@ -150,12 +160,16 @@ public class UserController {
            return "redirect:/manager/hr/workers";
        }
     }
-
-    @PostMapping("/manager/api/checkEmail")
+    @GetMapping("/manager/api/checkEmail")
     @ResponseBody
     public boolean checkEmail(@RequestParam("email") String email){
         User user = userRepository.findUserByEmail(email);
-        return user == null;
+        if(user!=null){
+            return true;
+        }else {
+            return false;
+        }
+
     }
     @PostMapping("/manager/api/editUser")
     public String editUser(HttpServletRequest request, @RequestParam("userid") Long userid, @RequestParam(value = "name",required = false) String name,
@@ -163,19 +177,24 @@ public class UserController {
                            @RequestParam(value = "email") String email,@RequestParam(value = "password",required = false) String password ,
                            @RequestParam(value = "department",required = false) Long department, @RequestParam(value = "role",required = false) Long role) throws  IOException{
         User user = userRepository.findUserById(userid);
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        User userCheck = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
+        if(user.getRoleSet().contains(roleRepository.findRoleByName("ADMIN")) && !userCheck.getRoleSet().contains(roleRepository.findRoleByName("ADMIN"))){
+            return "redirect:/manager/hr/workers";
+        }
         user.setName(name);
         user.setSurname(surname);
         user.setPhone_number(phone_number);
         passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode(password);
-        if(password!=null) user.setPassword(encodedPassword);
+        if(!password.equals("") && password != null) user.setPassword(encodedPassword);
         if(department!=null) user.setDepartment(departmentRepository.findDepartmentById(department));
         if(role!=null) user.setRoleSet(roleRepository.findRoleById(role));
         userRepository.saveAndFlush(user);
         String url = Utility.getSiteURL(request) + "/auth";
         if(!environment.getProperty("smtp.status").equals("OFF")) {
             try {
-                if(password!=null){
+                if(!password.equals("") && password != null){
                     notify.sendEmail(user.getEmail(), "HelpDesk | Your data has been changed.", "<p>Hello, your data has been changed by the administrator/manager...</p>" +
                             "<p>Your login: " + email + "</p>" +
                             "<p>Your password: " + password + "</p>" +
@@ -192,14 +211,31 @@ public class UserController {
                 me.printStackTrace();
             }
         }
-        // Do zmiany przekierowanie
-        if(role!= null) return "redirect:/admin/hr/users";
-        else return "redirect:/manager/hr/workers";
+
+       return "redirect:/manager/hr/workers";
+    }
+    @PostMapping("/admin/api/deleteUser")
+    @ResponseBody
+    public String deleteUser(@RequestParam("userid") Long userid) throws IOException{
+        User user =  userRepository.findUserById(userid);
+        if(user!=null){
+            if(!user.getRoleSet().isEmpty()) user.getRoleSet().clear();
+            if(!user.getUserTickets().isEmpty()) user.getUserTickets().clear();
+            userRepository.delete(user);
+
+            return "Successful";
+        }
+        return "User not found";
     }
     @PostMapping("/manager/api/deleteUser")
     @ResponseBody
     public String deleteUserFromDepartment(@RequestParam("userid") Long userid) throws IOException{
         User user = userRepository.findUserById(userid);
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        User userCheck = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
+        if(user.getRoleSet().contains(roleRepository.findRoleByName("ADMIN")) && !userCheck.getRoleSet().contains(roleRepository.findRoleByName("ADMIN"))){
+            return "BAD PERMISSION";
+        }
         user.setDepartment(departmentRepository.findDepartmentByName("UNALLOCATED"));
         user.setEnabled(false);
         if(!environment.getProperty("smtp.status").equals("OFF")) {
@@ -228,7 +264,7 @@ public class UserController {
             userRepository.saveAndFlush(user);
             return "Success";
         }
-        else return  "Error user not found";
+        else return  "Error! User not found";
     }
 
     @RequestMapping("/admin/departments")

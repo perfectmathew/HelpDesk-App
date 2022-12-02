@@ -31,12 +31,9 @@
             <form action="" enctype="multipart/form-data" method="post" id="ticket-form" class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
                 <div id="content">
                     <h1 class="block text-gray-700 text-4xl font-bold mb-2">New ticket</h1>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dziedzina">What is the area of ticket?</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="department-select">What is the area of ticket?</label>
                     <div class="mb-6">
-                     <!--- <p class="block text-gray-700 text-sm font-bold mb-2">Start writing and the app itself will assign you a category....</p> ------>
-                        <!---   <input type="text" id="searchby" class="shadow appearance-none border rounded-2xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">------>
-                        <!---    <p class="block text-gray-700 text-sm font-bold mb-2">Still can't find one? Select an entry category below</p>------>
-                      <select class="shadow appearance-none border rounded-2xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="dziedzina" id="dziedzina">
+                      <select class="shadow appearance-none border rounded-2xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="department-select" id="department-select">
                           <option value="*">Choose the option</option>
                           <option value="SERVICE">Hardware failure</option>
                           <option value="IT">IT</option>
@@ -49,7 +46,7 @@
   </section>
 </main>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
-<script th:src="@{/js/user_functions.js}"></script>
 <script type="text/javascript" th:src="@{/js/toastify.js}"></script>
+<script th:src="@{/js/user_functions.js}"></script>
 </body>
 </html>

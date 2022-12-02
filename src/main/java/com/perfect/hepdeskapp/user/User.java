@@ -7,6 +7,7 @@ import com.perfect.hepdeskapp.ticket.Ticket;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,11 +21,17 @@ public class User {
     private Long id;
     @NotBlank(message = "Name is mandatory")
     private String name;
+    @NotBlank
     private String surname;
+    @NotBlank
     private String phone_number;
+    @Column(unique = true)
+    @NotBlank
     private String email;
+    @NotBlank
     private String password;
     private boolean enabled;
+    private String password_token;
     @ManyToOne
     @JoinColumn(name = "departmentid")
     private Department department;
@@ -39,7 +46,8 @@ public class User {
     @JsonIgnore
     @ManyToMany(mappedBy = "userList")
     private List<Ticket> userTickets = new ArrayList<>();
-    private String password_token;
+
+
     public User(){
 
     }
@@ -159,4 +167,6 @@ public class User {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+
 }

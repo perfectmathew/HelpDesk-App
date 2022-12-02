@@ -1,5 +1,6 @@
 package com.perfect.hepdeskapp.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.perfect.hepdeskapp.ticket.Ticket;
 
 import javax.persistence.*;
@@ -17,7 +18,16 @@ public class Task {
     private String description;
     private boolean done;
     @ManyToMany(mappedBy = "ticketTasksSet")
+    @JsonIgnore
     public Set<Ticket> ticketSet = new HashSet<>();
+    public Task(){
+
+    }
+    public Task(String task, String description, boolean done){
+        this.task = task;
+        this.description = description;
+        this.done = done;
+    }
     public Long getId() {
         return id;
     }

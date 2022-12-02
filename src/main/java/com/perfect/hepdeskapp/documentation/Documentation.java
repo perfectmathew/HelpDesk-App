@@ -59,6 +59,11 @@ public class Documentation {
     public Set<Attachment> getDocumentationAttachmentsSet() {
         return documentationAttachmentsSet;
     }
+    public void deleteAttachmentFromDocumentation(Attachment attachment)  { this.documentationAttachmentsSet.remove(attachment); }
+
+    public void addAttachmentToDocumentation(Attachment attachment){
+        this.documentationAttachmentsSet.add(attachment);
+    }
 
     public void setDocumentationAttachmentsSet(Set<Attachment> documentationAttachmentsSet) {
         this.documentationAttachmentsSet = documentationAttachmentsSet;

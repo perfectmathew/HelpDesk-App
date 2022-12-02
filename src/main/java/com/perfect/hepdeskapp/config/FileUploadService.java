@@ -21,8 +21,6 @@ public class FileUploadService {
         try(InputStream inputStream = multipartFile.getInputStream()){
             Path filePath= uploadPath.resolve(fileName);
             Files.copy(inputStream,filePath, StandardCopyOption.REPLACE_EXISTING);
-
-
         } catch (IOException ex){
             throw  new IOException("Nie można zapisać pliku! Błąd: "+ ex + " przy zapisywaniu pliku:"+ fileName);
         }
@@ -36,5 +34,11 @@ public class FileUploadService {
             }
         }
         return directory.delete();
+    }
+    public static boolean deleteFile(File file){
+        if(file!=null){
+            return file.delete();
+        }
+        return false;
     }
 }
