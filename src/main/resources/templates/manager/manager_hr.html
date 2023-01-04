@@ -19,8 +19,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+    <script th:src="@{/js/JQuery/1.7.1/jquery.min.js}"></script>
+    <script th:src="@{/js/JQuery/3.5.0/jquery.min.js}"></script>
 </head>
 <body>
 <main class="flex">
@@ -28,10 +28,10 @@
     <section class="flex-1 bg-gray-900 bg-opacity-20">
         <div class="flex justify-center items-center h-screen text-center text-black">
             <div class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
-                <h2 class="text-gray-800 font-bold">HR Management -  <span class="font-medium" th:text="${'Workers'}"> </span> </h2>
+                <h2 class="text-gray-800 font-bold">HR Management -  <span class="font-medium" id="typeOfWorker" th:text="${'Workers'}"> </span> </h2>
                 <hr>
                 <div class="flex relative rounded-2xl shadow-md sm:rounded-lg">
-                    <table class="w-full text-sm text-left text-gray-500 text-gray-400">
+                    <table id="users-hr-table" class="w-full text-sm text-left text-gray-500 text-gray-400">
                         <thead class="text-xs text-white uppercase  bg-gray-700 bg-gray-700 text-white">
                         <tr>
                             <th scope="col" class="py-3 px-6">
@@ -42,6 +42,7 @@
                             </th>
                             <th scope="col" class="py-3 px-6">
                                 Email
+                                <input type="email" placeholder="Type to search" id="user-search" class="px-2 text-black rounded border">
                             </th>
                             <th scope="col" class="py-3 px-6">
                                 Phone
@@ -78,137 +79,38 @@
 
                             </td>
                             <td class="py-4 px-6">
-                                <a  class="editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline"><i class="fa-solid fa-pen"></i> Edit</a>
-                                <a   class="deleteUserBtn font-medium text-red-700 dark:text-red-500 hover:underline"><i class="fa-solid fa-trash"></i> Delete</a>
+                                <a  class="editUserBtn font-medium text-yellow-500 hover:underline"><i class="fa-solid fa-pen"></i> Edit</a>
+                                <a  class="deleteUserBtn font-medium text-red-500 hover:underline"><i class="fa-solid fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
+                <nav aria-label="Users pagination" class="mt-3">
+                    <ul class="pagination inline-flex items-center -space-x-px">
+                        <li>
+                            <a class="block px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                <span class="sr-only">Previous</span>
+                                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                            </a>
+                        </li>
+                        <li>
+                            <a  class="block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                <span class="sr-only">Next</span>
+                                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
                 <button id="addUserBtn" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="mt-2 inline-block px-6 py-2.5 bg-blue-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out"
                 > <i class="fa-solid fa-user-plus"></i> Add new user</button>
             </div>
         </div>
     </section>
-    <div id="Modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-        <div class="fixed z-10 inset-0 overflow-y-auto">
-            <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
-                <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
-                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <form id="user-form" method="post" th:action="@{/manager/api/addUser}">
-                                    <h3 class="form-tittle text-lg leading-6 font-medium text-gray-900" >Add new user</h3>
-                                    <input type="hidden" placeholder="id" id="userid" name="userid">
-                                    <div class="mt-2">
-                                        <label for="name" class="text-sm text-gray-500">Name</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <input type="text" placeholder="Name" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                    </div>
-                                    <div class="mt-2">
-                                        <label for="surname" class="text-sm text-gray-500">Surname</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <input type="text" placeholder="Surname" id="surname" name="surname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                    </div>
-                                    <div class="mt-2">
-                                        <label for="phone_number" class="text-sm text-gray-500">Phone number</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <input type="text" placeholder="Phone number" id="phone_number" name="phone_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                    </div>
-                                    <div class="mt-2">
-                                        <label for="email" class="text-sm text-gray-500">Email</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <input type="email" placeholder="Email" name="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                    </div>
-                                    <div class="mt-2">
-                                        <label for="password" class="text-sm text-gray-500">Password</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <input type="password" id="password" placeholder="*******" name="password" class="password shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                    </div>
-                                    <hr>
-                                    <div class="mt-2">
-                                        <label for="department" class="text-sm text-gray-500">Department</label>
-                                    </div>
-                                    <div class="mt-6">
-                                        <p class="text-gray-800 font-semibold" th:text="${department.name}"></p>
-                                        <input class="hidden" th:value="${department.id}" type="text" name="department" id="department">
-                                    </div>
-                                    <div id="active-role-section">
-                                        <div class="mt-2">Active Roles</div>
-                                        <div class="active-roles mt-6">
-                                        </div>
-                                    </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button  type="submit" class="addBtn w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:ml-3 sm:w-auto sm:text-sm">Add</button>
-                        <button id="hide-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-500 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </main>
-<script>
-    $(document).on('click','#hide-modal',function (){
-        $('#Modal').hide();
-    })
-    $(document).on('click','.editUserBtn',function (){
-        let currentTD = $(this).closest("tr").find("td");
-        $('#user-form').attr('action','/manager/api/editUser')
-        $('.addBtn').text("Edit user")
-        $('#active-role-section').show();
-        $('#userid').val($(currentTD).eq(0).text())
-        $('#name').val($(currentTD).eq(1).text())
-        $('#surname').val($(currentTD).eq(2).text())
-        $('.form-tittle').text("Edit user " +  $('#name').val() )
-        $('#email').val($(currentTD).eq(3).text())
-        $('#phone_number').val($(currentTD).eq(4).text())
-        $('#department').val($(currentTD).eq(6).text())
-        $('.password').attr('required',false)
-        $.ajax({
-            type: "GET",
-            url: "/manager/api/getUserRoles",
-            data: { "userid" : $('#userid').val() },
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader(header, token);
-            },
-            success: function (response){
-                $('.active-roles').empty();
-                $.each(response, function (i, role){
-                    $('.active-roles').append("<span class='inline-flex items-center py-1 px-2 mr-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-200 dark:text-blue-800'>\n" +
-                        "  "+role.name+" "+
-                        "</span>");
-                })
-            },
-            error: function (e){
-
-            }
-        })
-        $('#Modal').show();
-    })
-    $(document).on('click','#addUserBtn',function (){
-        $('.form-tittle').text("Add new user")
-        $('#active-role-section').hide();
-        $('#user-form').attr('action','/manager/api/addUser')
-        $('#name').val("")
-        $('#surname').val("")
-        $('#email').val("")
-        $('#phone_number').val("")
-        $('#password').val("")
-        $('.password').attr('required',true)
-        $('.addBtn').text("Add user")
-        $('#Modal').show();
-    })
-</script>
+<div th:insert="fragments/modals :: user_addition_modal"></div>
+<div th:insert="fragments/modals :: user_edit_modal"></div>
+<script type="application/javascript" th:src="@{/js/templates/user.js}"></script>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/manager_functions.js}"></script>
 <script type="text/javascript" th:src="@{/js/toastify.js}"></script>

@@ -11,18 +11,29 @@ import java.io.UnsupportedEncodingException;
 
 @Service
 public class NotifyService {
-    @Autowired
-    public JavaMailSender javaMailSender;
+    public final JavaMailSender javaMailSender;
 
-    public void sendEmail(String email, String tytul, String kontent)   throws MessagingException, UnsupportedEncodingException {
+    public NotifyService(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
+
+    public void sendEmail(String email, String title, String content)   throws MessagingException, UnsupportedEncodingException {
         MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
-        helper.setFrom("helpdesk@gmail.com", "HelpDesk App");
-        helper.setTo(email);
-        String subject = tytul;
-        String content = kontent;
-        helper.setSubject(subject);
-        helper.setText(content, true);
+        MimeMessageHelper messageHelper = new MimeMessageHelper(message);
+        messageHelper.setFrom("helpdesk@gmail.com", "HelpDesk App");
+        messageHelper.setTo(email);
+        messageHelper.setSubject(title);
+        messageHelper.setText(content, true);
+        javaMailSender.send(message);
+    }
+    public void sendEmail(String email,String[] cc, String title, String content)  throws MessagingException, UnsupportedEncodingException{
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper messageHelper = new MimeMessageHelper(message);
+        messageHelper.setFrom("helpdesk@gmail.com", "HelpDesk App");
+        messageHelper.setTo(email);
+        messageHelper.setCc(cc);
+        messageHelper.setSubject(title);
+        messageHelper.setText(content, true);
         javaMailSender.send(message);
     }
 }

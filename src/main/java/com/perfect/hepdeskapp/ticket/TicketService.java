@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.Random;
+
 @Service
 public class TicketService {
     final
@@ -38,5 +40,14 @@ public class TicketService {
         ticket.setStatus(status);
         ticketRepository.saveAndFlush(ticket);
         return true;
+    }
+    public String generateHash(){
+        String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk"
+                +"lmnopqrstuvwxyz@";
+        Random rnd = new Random();
+        StringBuilder hash = new StringBuilder(10);
+        for (int i = 0; i < 10; i++) hash.append(chars.charAt(rnd.nextInt(chars.length())));
+
+        return hash.toString();
     }
 }

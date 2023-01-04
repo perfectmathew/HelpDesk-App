@@ -117,7 +117,7 @@ public class SettingsController {
             // required for gmail
             props.put("mail.smtp.starttls.enable","true");
             props.put("mail.smtp.auth", "true");
-            // or use getDefaultInstance instance if desired...
+
             Session session = Session.getInstance(props, null);
             Transport transport = session.getTransport("smtp");
             transport.connect(smtp_server, smtp_server_port, smtp_username, smtp_password);
@@ -133,6 +133,7 @@ public class SettingsController {
     @ResponseBody
     public String checkDbConnection(@RequestParam("url") String url, @RequestParam("username") String username,
                                     @RequestParam("password") String password) {
+        if (!url.contains("jdbc:postgresql")) return "This app support only postgresql database at this moment!";
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
             Statement stmt = null;
             ResultSet resultset = null;

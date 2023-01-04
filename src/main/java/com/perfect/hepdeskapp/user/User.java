@@ -7,7 +7,6 @@ import com.perfect.hepdeskapp.ticket.Ticket;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

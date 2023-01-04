@@ -1,5 +1,5 @@
 // GLOBAL VARIABLES //
-
+let current_td = null;
 let current_tr = null;
 let department_name;
 let currentStatus;
@@ -7,6 +7,7 @@ let currentPriority;
 
 
 // MANAGER HR SECTION//
+
 
 $(document).on('click','.deleteUserBtn',function () {
     current_tr = $(this).closest("tr")
@@ -39,12 +40,196 @@ $(document).on('click','#approve-delete-user',function () {
         }
     })
 })
+$(document).on('click','.editUserBtn',function (){
+    let currentTD = $(this).closest("tr").find("td");
+    current_td = currentTD;
+    $.ajax({
+        type: "GET",
+        url: "/manager/api/getUserDetails",
+        data: { "userid" : $(currentTD).eq(0).text() },
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user){
+            $('#edit-id').val(user.id)
+            $('#edit-name').val(user.name)
+            $('#edit-surname').val(user.surname)
+            $('#edit-phone_number').val(user.phone_number)
+            $('#edit-email').val(user.email)
+        },
+        error: function () {
+            notification("An internal error occurred!")
+        }
+    })
+    $('#user-edit-modal').fadeIn(300)
+})
+$("#user-edit-form").submit(function (e) {
+    e.preventDefault();
+    let form = $(this);
+    $.ajax({
+        type: "patch",
+        url: "/manager/api/editUser",
+        data: form.serialize(),
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user) {
+            $(current_td).eq(1).text(user.name)
+            $(current_td).eq(2).text(user.surname)
+            $(current_td).eq(3).text(user.email)
+            $(current_td).eq(4).text(user.phone_number)
+            $(current_td).eq(5).text(user.department.name)
+            notification("User data updated successfully!")
+            $('#user-edit-modal').fadeOut(300);
+        },
+        error: function (e) {
+            notification(e.responseJSON.message);
+            $('#user-edit-modal').fadeOut(300);
+        }
+    })
+})
+$(document).on('click','#addUserBtn',function (){
+    $('#user-addition-modal').fadeIn(300);
+})
+$("#user-addition-form").submit(function (e) {
+    e.preventDefault();
+    let form = $(this);
+    $.ajax({
+        type: "POST",
+        url: "/manager/api/addUser",
+        data: form.serialize(),
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user) {
+            $('#users-hr-table > tbody:last-child').append("" +
+                "<tr class='border-b bg-gray-900 border-gray-700'>" +
+                "<td class='hidden'>"+user.id+"</td>" +
+                "<td class='py-4 px-6 font-medium text-white whitespace-nowrap'>"+user.name+"</td>" +
+                "<td class='py-4 px-6'>"+user.surname+"</td>" +
+                "<td class='py-4 px-6'>"+user.email+"</td>" +
+                "<td class='py-4 px-6'>"+user.phone_number+"</td>" +
+                "<td class='py-4 px-6'>"+user.department.name+"</td>" +
+                "<td class='py-4 px-6'>" +
+                "<button  class='editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
+                "<button class='deleteUsrBtn font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</button>\n" +
+                "</td>" +
+                "</tr>")
+            notification("User added successfully!")
+            $('#user-addition-modal').fadeOut(300);
+        },
+        error: function (e) {
+            notification(e.responseJSON.message);
+            $('#user-addition-modal').fadeOut(300);
+        }
+    })
+})
+
+$(document).ready(function () {
+    let totalPages = 1;
+    function getPage(startPage){
+        let request = "/manager/api/hr/getDepartmentWorkers";
+        $.ajax({
+            url: request,
+            type: 'GET',
+            data: {
+                page: startPage,
+                size: 10
+            },
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (response) {
+                $('#users-hr-table > tbody').empty()
+                $.each(response.content, (i,user) => {
+                    $('#users-hr-table > tbody').append(user_table_template(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name,user.enabled))
+                })
+                if ($('ul.pagination li').length - 2 !== response.totalPages){
+                    $('ul.pagination').empty();
+                    buildPagination(response);
+                }
+            }
+        })
+    }
+    function buildPagination(response) {
+        let totalPages = response.totalPages;
+        let pageNumber = response.pageable.pageNumber;
+        let numLinks = 10;
+        let prev;
+        if (pageNumber > 0) {
+            prev = '<li><a class="prevPage block px-3 py-2 ml-0 leading-tight  border  rounded-l-lg bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white">\n' +
+                '<span class="sr-only">Previous</span>\n' +
+                '<svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>\n' +
+                '</a></li>';
+        } else {
+            prev = '';
+        }
+        let next = '';
+        if (pageNumber < totalPages) {
+            if(pageNumber !== totalPages - 1) {
+                next = '<li><a class="nextPage block px-3 py-2 leading-tight border rounded-r-lg bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white">\n' +
+                    '<span class="sr-only">Next</span>\n' +
+                    '<svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>\n' +
+                    '</a></li>';
+            }
+        } else {
+            next = '';
+        }
+        let start = pageNumber - (pageNumber % numLinks) + 1;
+        let end = start + numLinks - 1;
+        end = Math.min(totalPages, end);
+        let pagingLink = '';
+        for (let i = start; i <= end; i++) {
+            if (i === pageNumber + 1) {
+                pagingLink += '<li><a class="z-10 px-3 py-2 leading-tight border hover:bg-blue-100 hover:text-blue-700 border-gray-700 bg-gray-700 text-white"> ' + i + ' </a></li>';
+            } else {
+                pagingLink += '<li><a class="px-3 py-2 leading-tight border hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"> ' + i + ' </a></li>';
+            }
+        }
+        pagingLink =  prev + pagingLink + next;
+        $("ul.pagination").append(pagingLink);
+    }
+    $(document).on("click", "ul.pagination li a", function() {
+        let val = $(this).text();
+        let startPage;
+        if ($(this).hasClass('nextPage')) {
+            let activeValue = parseInt($("ul.pagination li.active").text());
+            if (activeValue < totalPages) {
+                let currentActive = $("li.active");
+                startPage = activeValue;
+                getPage(startPage);
+                $("li.active").removeClass("active");
+                currentActive.next().addClass("active");
+            }
+        } else if ($(this).hasClass('prevPage')) {
+            let activeValue = parseInt($("ul.pagination li.active").text());
+            if (activeValue > 1) {
+                startPage = activeValue - 2;
+                getPage(startPage);
+                let currentActive = $("li.active");
+                currentActive.removeClass("active");
+                currentActive.prev().addClass("active");
+            }
+        } else {
+            startPage = parseInt(val - 1);
+            getPage(startPage);
+            $("li.active").removeClass("active");
+            $(this).parent().addClass("active");
+        }
+    });
+    getPage(0);
+})
 
 // CLOSE MODAL //
 
 $(document).on('click','.close-modal',function () {
     $("#modal").fadeOut(300);
-
+    $('#user-edit-modal').fadeOut(300)
+    $('#user-addition-modal').fadeOut(300)
+})
+$(document).on('click','#hide-modal',function (){
+    $('#Modal').hide();
+    $('#user-edit-modal').fadeOut(300)
+    $('#user-addition-modal').fadeOut(300)
 })
 
 // TICKET SECTION //
@@ -230,6 +415,9 @@ $(document).on('click','.unassignWorkerBtn',function () {
         $('#assigned-workers option:selected').remove()
     }
 })
+
+
+
 $(document).on('click','#cancel-edit-change',function () {
     $('#edit-department-name-section').empty().append("<p id='department-name'>"+department_name+"</p>")
     $('#edit-button-section').empty().append("<button  type='button' data-mdb-ripple='trie' data-mdb-ripple-color='light' class='editDepartmentBtn inline-block px-6 py-2.5 bg-yellow-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-yellow-700 hover:shadow-lg focus:bg-yellow-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-yellow-800 active:shadow-lg transition duration-150 ease-in-out'\n" +
@@ -238,7 +426,7 @@ $(document).on('click','#cancel-edit-change',function () {
 $(document).on('click','.editDepartmentBtn',function () {
     department_name = $('#department-name').text()
     $.ajax({
-        url: '/admin/getAllDepartments',
+        url: '/admin/api/getAllDepartments',
         type: 'get',
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
@@ -289,7 +477,7 @@ $(document).on('click','#editButton',function () {
         " <input type='hidden' name='_csrf' value='"+token+"' />"+
         "                <p class='font-bold'>Attachments:</p>\n" +
         "                <input type='file' id='attachments' name='attachments' multiple='multiple'>\n" +
-        "                <button type='submit' class='bg-yellow-500 hover:bg-yellow-700 pl-2  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'><i class='fa-solid fa-pen'></i> Edit documentation</button>\n" +
+        "                <button type='submit' class='bg-yellow-500 hover:bg-yellow-700 pl-2 mt-2  text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'><i class='fa-solid fa-pen'></i> Edit documentation</button>\n" +
         "              </form>")
 
 })
@@ -317,13 +505,13 @@ $(document).on('click','.editStatusBtn',function () {
 $(document).on('click','.approveStatusBtn',function () {
     $.ajax({
         url: '/manager/api/changeTicketStatus',
-        type: 'post',
+        type: 'patch',
         data: { 'ticket-id': $('#ticket-id').val(), 'status-id' : $('#status-selector').val() },
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
         },
         success: function (response){
-            if(response === "ERROR"){
+            if(response === "SMTP ERROR"){
                 notification("Smtp server error!");
             }
             $('#ticketStatus').empty().append("Status: <span class='ticketStatusValue'>"+response+"</span>" +

@@ -10,10 +10,7 @@ import com.perfect.hepdeskapp.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.LookupOp;
 
@@ -44,6 +41,15 @@ public class TaskController {
         ticket.addTaskToTicket(task);
         ticketRepository.saveAndFlush(ticket);
         return task;
+    }
+
+    @PatchMapping("/worker/api/markTaskAsDone")
+    @ResponseBody
+    public String markTaskAsDone(@RequestParam("task-id") Long task_id){
+        Task task = taskRepository.findTaskById(task_id);
+        task.setDone(true);
+        taskRepository.saveAndFlush(task);
+        return "Successfully";
     }
 
     @GetMapping("/api/getTaskInfo")

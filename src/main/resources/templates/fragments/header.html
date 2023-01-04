@@ -5,7 +5,7 @@
 </head>
 <body>
 <div th:fragment="header_fragment" class="bg-gray-900 sm:w-60 h-screen w-14 pt-4 transition-all">
-  <ul class="mt-5" sec:authorize="isAnonymous()">
+  <ul class="mt-2" sec:authorize="isAnonymous()">
     <a th:href="@{/}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -33,8 +33,8 @@
       </li>
     </a>
   </ul>
-  <ul class="mt-11" sec:authorize="hasAuthority('WORKER')">
-    <a th:href="@{/worker/tickets}">
+  <ul class="mt-2" sec:authorize="hasAuthority('WORKER')">
+    <a th:href="@{/worker/api/tickets}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
              width="24px" height="24px" viewBox="0 0 96.5 96.5" style="enable-background:new 0 0 96.5 96.5;" xml:space="preserve">
@@ -170,14 +170,20 @@
       </li>
     </a>
   </ul>
-  <ul class="mt-11" sec:authorize="hasAuthority('ADMIN')">
-    <a th:href="@{/admin/departments}">
+  <ul class="mt-2" sec:authorize="hasAuthority('ADMIN')">
+      <a th:href="@{/admin/api/dashboard}">
+          <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
+              <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M29,8c0,-1.326 -0.527,-2.598 -1.464,-3.536c-0.938,-0.937 -2.21,-1.464 -3.536,-1.464c-4.439,-0 -11.561,-0 -16,-0c-1.326,-0 -2.598,0.527 -3.536,1.464c-0.937,0.938 -1.464,2.21 -1.464,3.536c-0,4.439 -0,11.561 -0,16c-0,1.326 0.527,2.598 1.464,3.536c0.938,0.937 2.21,1.464 3.536,1.464c4.439,-0 11.561,0 16,0c1.326,0 2.598,-0.527 3.536,-1.464c0.937,-0.938 1.464,-2.21 1.464,-3.536l-0,-16Zm-12.829,12l-8.171,0c-0.552,-0 -1,0.448 -1,1c-0,0.552 0.448,1 1,1l8.171,0c0.412,1.165 1.524,2 2.829,2c1.305,0 2.417,-0.835 2.829,-2l2.171,0c0.552,-0 1,-0.448 1,-1c-0,-0.552 -0.448,-1 -1,-1l-2.171,0c-0.412,-1.165 -1.524,-2 -2.829,-2c-1.305,0 -2.417,0.835 -2.829,2Zm-6,-10c0.412,-1.165 1.524,-2 2.829,-2c1.305,0 2.417,0.835 2.829,2l8.171,0c0.552,-0 1,0.448 1,1c0,0.552 -0.448,1 -1,1l-8.171,0c-0.412,1.165 -1.524,2 -2.829,2c-1.305,0 -2.417,-0.835 -2.829,-2l-2.171,0c-0.552,-0 -1,-0.448 -1,-1c0,-0.552 0.448,-1 1,-1l2.171,0Z"/><g id="Icon"/></svg>
+              <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">Dashboard</span>
+          </li>
+      </a>
+    <a th:href="@{/admin/api/departments}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">Departments</span>
       </li>
     </a>
-    <a th:href="@{/admin/tickets}">
+    <a th:href="@{/admin/api/tickets}">
       <li  class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
              width="24px" height="24px" viewBox="0 0 96.5 96.5" style="enable-background:new 0 0 96.5 96.5;" xml:space="preserve">
@@ -237,7 +243,7 @@
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">Tickets</span>
       </li>
     </a>
-    <a th:href="@{/admin/history}">
+    <a th:href="@{/admin/api/history}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M12,2A10,10,0,0,0,5.12,4.77V3a1,1,0,0,0-2,0V7.5a1,1,0,0,0,1,1H8.62a1,1,0,0,0,0-2H6.22A8,8,0,1,1,4,12a1,1,0,0,0-2,0A10,10,0,1,0,12,2Zm0,6a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h2a1,1,0,0,0,0-2H13V9A1,1,0,0,0,12,8Z"/></svg>
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">History</span>
@@ -484,8 +490,14 @@
       </li>
     </a>
   </ul>
-  <ul class="mt-11" sec:authorize="hasAuthority('DEPARTMENT_BOSS')">
-    <a th:href="@{/manager/tickets}">
+  <ul class="mt-2" sec:authorize="hasAuthority('DEPARTMENT_BOSS')">
+      <a th:href="@{/manager/api/dashboard}">
+          <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
+              <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M29,8c0,-1.326 -0.527,-2.598 -1.464,-3.536c-0.938,-0.937 -2.21,-1.464 -3.536,-1.464c-4.439,-0 -11.561,-0 -16,-0c-1.326,-0 -2.598,0.527 -3.536,1.464c-0.937,0.938 -1.464,2.21 -1.464,3.536c-0,4.439 -0,11.561 -0,16c-0,1.326 0.527,2.598 1.464,3.536c0.938,0.937 2.21,1.464 3.536,1.464c4.439,-0 11.561,0 16,0c1.326,0 2.598,-0.527 3.536,-1.464c0.937,-0.938 1.464,-2.21 1.464,-3.536l-0,-16Zm-12.829,12l-8.171,0c-0.552,-0 -1,0.448 -1,1c-0,0.552 0.448,1 1,1l8.171,0c0.412,1.165 1.524,2 2.829,2c1.305,0 2.417,-0.835 2.829,-2l2.171,0c0.552,-0 1,-0.448 1,-1c-0,-0.552 -0.448,-1 -1,-1l-2.171,0c-0.412,-1.165 -1.524,-2 -2.829,-2c-1.305,0 -2.417,0.835 -2.829,2Zm-6,-10c0.412,-1.165 1.524,-2 2.829,-2c1.305,0 2.417,0.835 2.829,2l8.171,0c0.552,-0 1,0.448 1,1c0,0.552 -0.448,1 -1,1l-8.171,0c-0.412,1.165 -1.524,2 -2.829,2c-1.305,0 -2.417,-0.835 -2.829,-2l-2.171,0c-0.552,-0 -1,-0.448 -1,-1c0,-0.552 0.448,-1 1,-1l2.171,0Z"/><g id="Icon"/></svg>
+              <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">Dashboard</span>
+          </li>
+      </a>
+    <a th:href="@{/manager/api/tickets}">
       <li id="btnTicket" class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
              width="24px" height="24px" viewBox="0 0 96.5 96.5" style="enable-background:new 0 0 96.5 96.5;" xml:space="preserve">
@@ -545,7 +557,7 @@
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">Tickets</span>
       </li>
     </a>
-    <a th:href="@{/manager/history}">
+    <a th:href="@{/manager/api/history}">
       <li class="hover:bg-gray-800 cursor-pointer sm:justify-start px-4 h-12 flex items-center justify-center">
         <svg width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M12,2A10,10,0,0,0,5.12,4.77V3a1,1,0,0,0-2,0V7.5a1,1,0,0,0,1,1H8.62a1,1,0,0,0,0-2H6.22A8,8,0,1,1,4,12a1,1,0,0,0-2,0A10,10,0,1,0,12,2Zm0,6a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h2a1,1,0,0,0,0-2H13V9A1,1,0,0,0,12,8Z"/></svg>
         <span class="ml-3 hidden sm:block  text-gray-400 font-semibold tracking-wide hover:text-white transition-colors">History</span>

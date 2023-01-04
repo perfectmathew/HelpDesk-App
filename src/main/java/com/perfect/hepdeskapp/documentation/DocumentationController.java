@@ -3,14 +3,11 @@ package com.perfect.hepdeskapp.documentation;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.attachment.AttachmentRepository;
 import com.perfect.hepdeskapp.config.FileUploadService;
-import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.print.Doc;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,6 +31,9 @@ public class DocumentationController {
         this.ticketRepository = ticketRepository;
         this.attachmentRepository = attachmentRepository;
     }
+
+    // ADMIN AND DEPARTMENT_BOSS API FOR DOCUMENTATION //
+
     @PostMapping("/manager/api/addDocumentation")
     public String addDocumentation(@RequestParam("ticket") Long ticket, @RequestParam("content") String docContent,
      @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException {
@@ -62,6 +62,7 @@ public class DocumentationController {
         documentationRepository.saveAndFlush(documentation);
         return "redirect:/t/"+ticket;
     }
+
     @PostMapping("/manager/api/editDocumentation")
     public String editDocumentation(@RequestParam("documentationid") Long documentationId, @RequestParam("ticketid")  Long ticket, @RequestParam("content") String docContent,
                                     @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException{
@@ -122,5 +123,60 @@ public class DocumentationController {
         return "Successfully";
     }
 
+    // WORKER API FOR DOCUMENTATION //
 
+    @PostMapping("/worker/api/addDocumentation")
+    public String workerAddDocumentation(@RequestParam("ticket") Long ticket, @RequestParam("content") String docContent,
+                                         @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException {
+        Documentation documentation = new Documentation();
+        Ticket ticketObject = ticketRepository.findTicketById(ticket);
+        documentation.setTicket(ticketObject);
+        documentation.setDescription(docContent);
+        if(files != null){
+            List<Attachment> attachments = new ArrayList<>();
+            Path root = Paths.get("src","main","webapp","WEB-INF", "uploads");
+            String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk"
+                    +"lmnopqrstuvwxyz@";
+            Random rnd = new Random();
+            StringBuilder hash = new StringBuilder(10);
+            for (int i = 0; i < 10; i++) hash.append(chars.charAt(rnd.nextInt(chars.length())));
+            String uploadDir = root + "/" + hash;
+            for(MultipartFile file : files){
+                if(!file.isEmpty()){
+                    FileUploadService.saveFile(uploadDir,file.getOriginalFilename(),file);
+                    attachments.add(new Attachment(file.getOriginalFilename(),"/uploads/"+hash+"/"+file.getOriginalFilename()));
+                }
+            }
+            attachmentRepository.saveAllAndFlush(attachments);
+            documentation.getDocumentationAttachmentsSet().addAll(attachments);
+        }
+        documentationRepository.saveAndFlush(documentation);
+        return "redirect:/t/"+ticket;
+    }
+    @PostMapping("/worker/api/editDocumentation")
+    public String workerEditDocumentation(@RequestParam("documentationid") Long documentationId, @RequestParam("ticketid")  Long ticket, @RequestParam("content") String docContent,
+                                          @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException{
+        Documentation documentation = documentationRepository.findDocumentationById(documentationId);
+        documentation.setDescription(docContent);
+        if(files!=null){
+            List<Attachment> attachments = new ArrayList<>();
+            Attachment attachment = attachmentRepository.findAttachmentByDocumentation(documentation.getId()).get(0);
+            if(attachment!=null){
+                String result = attachment.getUrl();
+                String[] r = result.split("/");
+                Path path = Paths.get("src","main","webapp","WEB-INF","uploads",r[2]);
+                String uploadDir = path + "/";
+                for(MultipartFile file : files){
+                    if(!file.isEmpty()){
+                        FileUploadService.saveFile(uploadDir,file.getOriginalFilename(),file);
+                        attachments.add(new Attachment(file.getOriginalFilename(),"/uploads/"+r[2]+"/"+file.getOriginalFilename()));
+                    }
+                }
+                attachmentRepository.saveAllAndFlush(attachments);
+                documentation.getDocumentationAttachmentsSet().addAll(attachments);
+            }
+        }
+        documentationRepository.saveAndFlush(documentation);
+        return "redirect:/t/"+ticket;
+    }
 }

@@ -19,9 +19,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+  <script th:src="@{/js/JQuery/1.7.1/jquery.min.js}"></script>
+  <script th:src="@{/js/JQuery/3.5.0/jquery.min.js}"></script>
 </head>
 <body>
 <main class="flex">
@@ -30,7 +30,7 @@
     <div class="flex justify-center items-center h-screen text-center text-black">
       <div class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
         <div id="content">
-          <section id="user-details">
+          <section id="user-details-section">
           <h1 th:text="${user.name + ' '+user.surname}" class="block text-gray-700 text-4xl font-bold mb-2">{{User.name}}</h1>
           <hr>
           <div class="mb-6">
@@ -39,7 +39,6 @@
             <p class="block text-gray-800 text-sm font-bold mb-2">Department: <span th:text="${user.department.name}" class="text-gray-800 text-sm font-medium"></span></p>
             <p class="block text-gray-800 text-sm font-bold mb-2">Active roles:</p>
             <span th:text="${role.name}" th:each="role : ${user.roleSet}" class='inline-flex items-center py-1 px-2 mr-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-200 dark:text-blue-800'>
-
             </span>
           </div>
           </section>
@@ -54,5 +53,6 @@
 <script th:src="@{/js/functions.js}"></script>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
 <script type="text/javascript" th:src="@{/js/toastify.js}"></script>
+
 </body>
 </html>

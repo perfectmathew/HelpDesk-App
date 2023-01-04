@@ -9,9 +9,7 @@ import com.perfect.hepdeskapp.documentation.Documentation;
 import com.perfect.hepdeskapp.documentation.DocumentationRepository;
 import com.perfect.hepdeskapp.notification.NotifyService;
 import com.perfect.hepdeskapp.priority.PriorityRepository;
-import com.perfect.hepdeskapp.role.Role;
 import com.perfect.hepdeskapp.role.RoleRepository;
-import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.status.StatusRepository;
 import com.perfect.hepdeskapp.config.FileUploadService;
 import com.perfect.hepdeskapp.user.User;
@@ -66,63 +64,63 @@ public class TicketController {
     }
     // Request to ticket list
     // FOR ROLE ADMIN
-    @RequestMapping(value = "/admin/tickets")
+    @RequestMapping(value = "/admin/api/tickets")
     public String adminTicketList(Model model){
         model.addAttribute("statusList",statusRepository.findAll());
         model.addAttribute("ticketList",ticketRepository.findAllByTicket_time());
         return "admin/ticket_list";
     }
+    @RequestMapping(value = "/admin/api/history")
+    public String adminHistoryTicketList(Model model){
+        model.addAttribute("archive","archive");
+        model.addAttribute("ticketList",ticketRepository.findAllByStatusContainsArchivedOrderByTicket_time());
+        return "admin/ticket_list";
+    }
     // Request to ticket list
     // FOR ROLE DEPARTMENT_BOSS
-    @RequestMapping(value = "/manager/tickets")
+    @RequestMapping(value = "/manager/api/tickets")
     public String managerTicketList(Model model){
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         String email = ((UserDetail)principal).getUsername();
         User user = userRepository.findUserByEmail(email);
         model.addAttribute("statusList",statusRepository.findAll());
-        model.addAttribute("ticketList",ticketRepository.findTicketsByDepartment(user.getDepartment()));
+        model.addAttribute("ticketList",ticketRepository.findTicketsByDepartmentAnAndStatusNotContainingArchive(user.getDepartment()));
         return "manager/ticket_list";
     }
-    @RequestMapping(value = "/worker/tickets")
+    @RequestMapping(value = "/manager/api/history")
+    public String managerHistoryTicketList(Model model){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        String email = ((UserDetail)principal).getUsername();
+        User user = userRepository.findUserByEmail(email);
+        model.addAttribute("archive","archive");
+        model.addAttribute("ticketList",ticketRepository.findTicketsByDepartmentAndStatusContainingArchivedOrderByTicket_time(user.getDepartment()));
+        return "manager/ticket_list";
+    }
+    // Request to ticket list
+    // FOR ROLE WORKER
+    @RequestMapping(value = "/worker/api/tickets")
     public String workerTicketList(Model model){
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         String email = ((UserDetail)principal).getUsername();
         User user = userRepository.findUserByEmail(email);
-        model.addAttribute("statusList",statusRepository.findAll());
+        model.addAttribute("statusList",statusRepository.findStatusesByWorkerClass());
         model.addAttribute("ticketList",ticketRepository.findTicketsByUserListContaining(user.getEmail()));
         return "worker/ticket_list";
     }
     // Submit ticket function
     @PostMapping(value = "/sendTicket")
     @ResponseBody
-    public String submitTicket(HttpServletRequest request, Ticket ticket, Department department,
+    public String submitTicket(HttpServletRequest request, Ticket ticket,
                                @RequestParam("name") String name, @RequestParam("surname") String surname,
                                @RequestParam("email") String email, @RequestParam("phonenumber") String phone,
                                @RequestParam("description") String ticket_content,
                                @RequestParam("selectedDepartment") String selectedDepartment, @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException {
-
-        switch (selectedDepartment){
-            case "IT":
-                department = departmentRepository.findDepartmentByName("IT");
-                break;
-            case "SERVICE":
-                department = departmentRepository.findDepartmentByName("SERVICE");
-                break;
-            default:
-                department = departmentRepository.findDepartmentByName("UNALLOCATED");
-                break;
-        }
-        Status status = statusRepository.findStatusByStatus("NEW");
         String token = RandomString.make(30);
         Timestamp date = new Timestamp(System.currentTimeMillis());
         if(files != null){
             List<Attachment> attachmentsList = new ArrayList<>();
             Path root = Paths.get("src","main","webapp","WEB-INF", "uploads");
-            String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk"
-                    +"lmnopqrstuvwxyz@";
-            Random rnd = new Random();
-            StringBuilder hash = new StringBuilder(10);
-            for (int i = 0; i < 10; i++) hash.append(chars.charAt(rnd.nextInt(chars.length())));
+            String hash = ticketService.generateHash();
             String uploadDir = root + "/" + hash;
             for(MultipartFile file : files){
                 if(!file.isEmpty()){
@@ -138,14 +136,14 @@ public class TicketController {
         ticket.setDescription(ticket_content);
         ticket.setNotifier_email(email);
         ticket.setNotifier_phonenumber(phone);
-        ticket.setStatus(status);
-        ticket.setDepartment(department);
+        ticket.setStatus(statusRepository.findStatusByStatus("NEW"));
+        ticket.setDepartment(departmentRepository.findDepartmentByName(selectedDepartment));
         ticket.setAccess_token(token);
         ticket.setTicket_time(date);
         ticket.setPriority(priorityRepository.findPriorityByPriority_name("STANDARD"));
         ticketRepository.saveAndFlush(ticket);
         String url = Utility.getSiteURL(request) + "/status?ticket-id="+ ticket.getId() +"&ticket-token="+token;
-        if(!environment.getProperty("smtp.status").equals("OFF")) {
+        if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
             try {
                 notify.sendEmail(email, "HelpDesk | Your ticket has been sent!", "<p>Welcome,</p>"
                         + "<p>we have forwarded your ticket to the appropriate people.</p>"
@@ -168,18 +166,22 @@ public class TicketController {
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         User user = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
         Ticket ticket = ticketRepository.findTicketById(id);
+        Documentation documentation = documentationRepository.findDocumentationByTicket(ticket);
         if(user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))){
             if(!ticket.getUserList().contains(user)){
                 model.addAttribute("permissionError","Insufficient authority!");
                 return "index";
             }
+            model.addAttribute("ticket",ticket);
+            model.addAttribute("documentation",documentation);
+            return "ticket/ticket_worker_view";
         }else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))){
             if(!ticket.getDepartment().equals(user.getDepartment())){
                 model.addAttribute("permissionError","Insufficient authority!");
                 return "index";
             }
         }
-        Documentation documentation = documentationRepository.findDocumentationByTicket(ticket);
+
         List<User> userList = userRepository.findUserByDepartmentAndRole(ticket.getDepartment(),"WORKER");
         model.addAttribute("ticket",ticket);
         model.addAttribute("documentation",documentation);
@@ -245,72 +247,160 @@ public class TicketController {
         ticketRepository.saveAndFlush(ticket);
         return ticket.getPriority().getPriority_name();
     }
-    @PostMapping("/manager/api/changeTicketStatus")
-    @PreAuthorize("hasAnyRole('DEPARTMENT_BOSS','ADMIN')")
-    @ResponseBody
-    public String changeTicketStatus(HttpServletRequest request,@RequestParam("ticket-id") Long ticket_id, @RequestParam("status-id") Long status_id) throws IOException{
-        Ticket ticket = ticketRepository.findTicketById(ticket_id);
-        ticket.setStatus(statusRepository.findStatusById(status_id));
-        ticketRepository.saveAndFlush(ticket);
-        if(!environment.getProperty("smtp.status").equals("OFF")) {
-            String url = Utility.getSiteURL(request) + "/status?ticket-id="+ ticket.getId() +"&ticket-token="+ticket.getAccess_token();
-            try {
-                notify.sendEmail(ticket.getNotifier_email(), "HelpDesk | Your ticket changed status to "+ticket.getStatus().getStatus(), "<p>Welcome,</p>"
-                        + "<p>we have changed the status of your ticket.</p>"
-                        + "<p>Current status: " + ticket.getStatus().getStatus()+ "</p>"
-                        + "<p>If you want to check the details of your ticket go to this link.</p>"
-                        + "<p><a href=\"" + url + "\">Go to ticket</a></p>"
-                        + "<br>"
-                        + "<p>Thank you for your trust. "
-                        + "Helpdesk system.</p>");
-            } catch (MessagingException e) {
-                return "ERROR";
-            }
-        }
-        return ticket.getStatus().getStatus();
-    }
+
     @GetMapping("/api/findTicketsBy")
     @ResponseBody
     public List<Ticket> findTicketBy(@RequestParam(value = "sortDirection", required = false) String sortDirection, @RequestParam("findBy") String findBy, @RequestParam("findValue") String findVal){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        User user = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
       List<Ticket> ticketList = null;
-        switch (findBy){
-            case "status":
-                switch (findVal){
-                    case "NEW":
-                     ticketList = ticketRepository.findAllByStatus("NEW");
-                            break;
-                    case "IN PROGRESS":
-                        if(sortDirection==null || sortDirection.isEmpty()) ticketList = ticketRepository.findAllByStatus("IN PROGRESS");
-                        else {
-                            if (sortDirection.equals("ASC")) ticketList = ticketRepository.findAllByStatus("IN PROGRESS", Sort.by(Sort.Direction.ASC));
-                            else if (sortDirection.equals("DESC")) ticketList = ticketRepository.findAllByStatus("IN PROGRESS", Sort.by(Sort.Direction.DESC));
+        switch (findBy) {
+            case "status" -> {
+                switch (findVal) {
+                    case "NEW" -> {
+                        if (sortDirection == null || sortDirection.isEmpty()) {
+                            if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "NEW", Sort.by(Sort.Direction.ASC, "priority"));
+                            } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("NEW"));
+                            } else {
+                                ticketList = ticketRepository.findAllByStatus("NEW");
+                            }
+                        } else {
+                            if (sortDirection.equals("ASC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "NEW", Sort.by(Sort.Direction.ASC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("NEW"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("NEW", Sort.by(Sort.Direction.ASC, "priority"));
+                                }
+                            } else if (sortDirection.equals("DESC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "NEW", Sort.by(Sort.Direction.DESC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("NEW"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("NEW", Sort.by(Sort.Direction.DESC, "priority"));
+                                }
+                            }
                         }
-                        break;
-                    case "CANCELED":
-                        if(sortDirection==null || sortDirection.isEmpty()) ticketList = ticketRepository.findAllByStatus("CANCELED");
-                        else {
-                            if (sortDirection.equals("ASC")) ticketList = ticketRepository.findAllByStatus("CANCELED", Sort.by(Sort.Direction.ASC));
-                            else if (sortDirection.equals("DESC")) ticketList = ticketRepository.findAllByStatus("CANCELED", Sort.by(Sort.Direction.DESC));
-                        }
-                        break;
-                    case  "ARCHIVED":
-                        if(sortDirection==null || sortDirection.isEmpty()) ticketList = ticketRepository.findAllByStatus("ARCHIVED");
-                        else {
-                            if (sortDirection.equals("ASC")) ticketList = ticketRepository.findAllByStatus("ARCHIVED", Sort.by(Sort.Direction.ASC));
-                            else if (sortDirection.equals("DESC")) ticketList = ticketRepository.findAllByStatus("ARCHIVED", Sort.by(Sort.Direction.DESC));
-                        }
-                        break;
-                    default:
-                        ticketList = ticketRepository.findAll();
-                        break;
-                }
-             break;
-            case "date":
-                    if(sortDirection != null || !sortDirection.isEmpty()){
-                        if(sortDirection.equals("ASC")) ticketList = ticketRepository.findAllByTicket_time(Sort.by(Sort.Direction.ASC));
-                        else if (sortDirection.equals("DESC")) ticketList = ticketRepository.findAllByTicket_time(Sort.by(Sort.Direction.DESC));
                     }
-                break;
+                    case "IN PROGRESS" -> {
+                        if (sortDirection == null || sortDirection.isEmpty()) {
+                            if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "IN PROGRESS", Sort.by(Sort.Direction.ASC, "priority"));
+                            } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("IN PROGRESS"));
+                            } else {
+                                ticketList = ticketRepository.findAllByStatus("IN PROGRESS");
+                            }
+                        } else {
+                            if (sortDirection.equals("ASC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "IN PROGRESS", Sort.by(Sort.Direction.ASC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("IN PROGRESS"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("IN PROGRESS", Sort.by(Sort.Direction.ASC, "priority"));
+                                }
+                            } else if (sortDirection.equals("DESC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "IN PROGRESS", Sort.by(Sort.Direction.DESC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("IN PROGRESS"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("IN PROGRESS", Sort.by(Sort.Direction.DESC, "priority"));
+                                }
+                            }
+                        }
+                    }
+                    case "VERIFICATION" -> {
+                        if (sortDirection == null || sortDirection.isEmpty()) {
+                            if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "VERIFICATION", Sort.by(Sort.Direction.ASC, "priority"));
+                            } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("VERIFICATION"));
+                            } else {
+                                ticketList = ticketRepository.findAllByStatus("VERIFICATION");
+                            }
+                        } else {
+                            if (sortDirection.equals("ASC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "VERIFICATION", Sort.by(Sort.Direction.ASC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("VERIFICATION"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("VERIFICATION", Sort.by(Sort.Direction.ASC, "priority"));
+                                }
+                            } else if (sortDirection.equals("DESC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                                    ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail(), "VERIFICATION", Sort.by(Sort.Direction.DESC, "priority"));
+                                } else if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("VERIFICATION"));
+                                } else {
+                                    ticketList = ticketRepository.findAllByStatus("VERIFICATION", Sort.by(Sort.Direction.DESC, "priority"));
+                                }
+                            }
+                        }
+                    }
+                    case "DONE" -> {
+                        if (sortDirection == null || sortDirection.isEmpty()) {
+                            if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("DONE"));
+                            } else ticketList = ticketRepository.findAllByStatus("DONE");
+                        } else {
+                            if (sortDirection.equals("ASC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("DONE"));
+                                } else
+                                    ticketList = ticketRepository.findAllByStatus("DONE", Sort.by(Sort.Direction.ASC));
+                            } else if (sortDirection.equals("DESC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("DONE"));
+                                } else
+                                    ticketList = ticketRepository.findAllByStatus("DONE", Sort.by(Sort.Direction.DESC));
+                            }
+                        }
+                    }
+                    case "ARCHIVED" -> {
+                        if (sortDirection == null || sortDirection.isEmpty()) {
+                            if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("ARCHIVED"));
+                            } else ticketList = ticketRepository.findAllByStatus("ARCHIVED");
+                        } else {
+                            if (sortDirection.equals("ASC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("ARCHIVED"));
+                                } else
+                                    ticketList = ticketRepository.findAllByStatus("ARCHIVED", Sort.by(Sort.Direction.ASC));
+                            } else if (sortDirection.equals("DESC")) {
+                                if (user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) {
+                                    ticketList = ticketRepository.findTicketsByDepartmentAndStatus(user.getDepartment(), statusRepository.findStatusByStatus("ARCHIVED"));
+                                } else
+                                    ticketList = ticketRepository.findAllByStatus("ARCHIVED", Sort.by(Sort.Direction.DESC));
+                            }
+                        }
+                    }
+                    default -> {
+                        if (user.getRoleSet().contains(roleRepository.findRoleByName("WORKER"))) {
+                            ticketList = ticketRepository.findTicketsByStatusAndUserListContaining(user.getEmail());
+                        } else if ((user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS")))) {
+                            ticketList = ticketRepository.findTicketsByDepartmentAnAndStatusNotContainingArchive(user.getDepartment());
+                        } else {
+                            ticketList = ticketRepository.findAll();
+                        }
+                    }
+                }
+            }
+            case "date" -> {
+                if (sortDirection != null || !sortDirection.isEmpty()) {
+                    if (sortDirection.equals("ASC"))
+                        ticketList = ticketRepository.findAllByTicket_time(Sort.by(Sort.Direction.ASC));
+                    else if (sortDirection.equals("DESC"))
+                        ticketList = ticketRepository.findAllByTicket_time(Sort.by(Sort.Direction.DESC));
+                }
+            }
         }
         return ticketList;
     }

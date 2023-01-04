@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
+      class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="description" content="">
-    <title>HelpDesk | Dashboard</title>
+    <title>HelpDesk | Admin dashboard</title>
     <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
     <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/main.css}" />
@@ -17,12 +19,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+    <script th:src="@{/js/chart/chart.js}"></script>
+    <script th:src="@{/js/JQuery/1.7.1/jquery.min.js}"></script>
+    <script th:src="@{/js/JQuery/3.5.0/jquery.min.js}"></script>
 </head>
 <body>
-
+<main class="flex">
+    <nav  th:insert="fragments/header :: header_fragment"></nav>
+    <section class="flex-1 bg-gray-900 bg-opacity-20">
+        <div class="flex justify-center items-center h-screen text-center text-black">
+            <div class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
+                <h1 th:text="${'Welcome ' + loggedUser.name + '!'}">Welcome, {{USER}}!</h1>
+                <hr>
+                   <h2 class="text-2xl font-bold">App stats</h2>
+                <div class="pl-2 ml-2 mt-2">
+                    <h4>Done/Undone Tickets</h4>
+                    <hr class="mt-2">
+                    <canvas class="p-10" id="done-undone-chart"></canvas>
+                </div>
+                <div class="flex justify-center items-center">
+                    <div class="pl-2 ml-2 mt-2">
+                        <h1 th:text="${totalTicketCount}" class="font-bold text-2xl">{{TOTAL_TICKETS_COUNT}}</h1>
+                        <hr>
+                        <h4>total tickets</h4>
+                    </div>
+                    <div class="pl-2 ml-2 mt-2">
+                        <h1 th:text="${ticketByNewest}" class="font-bold text-2xl">{{TICKET_COUNT}}</h1>
+                        <hr>
+                        <h4>Newest Tickets</h4>
+                    </div>
+                    <div class="pl-2 ml-2 mt-2">
+                        <h1 id="ticketsDone" th:text="${ticketByDone}" class="font-bold text-2xl">{{TICKET_COUNT}}</h1>
+                        <h1 id="ticketsUndone" th:text="${ticketByUndone}" class="hidden">{{TICKET_COUNT}}</h1>
+                        <hr>
+                        <h4>Done tickets</h4>
+                    </div>
+                </div>
+                <div class="flex justify-center items-center">
+                    <div class="pl-2 ml-2 mt-2">
+                        <h1 th:text="${departmentsCount}" class="font-bold text-2xl">{{DEPARTMENTS_COUNT}}</h1>
+                        <hr>
+                        <h4><a th:href="@{/admin/api/departments}"> Departments</a></h4>
+                    </div>
+                    <div class="pl-2 ml-2 mt-2">
+                        <h1 th:text="${usersCount}" class="font-bold text-2xl">{{USERS_COUNT}}</h1>
+                        <hr>
+                        <h4><a th:href="@{/admin/hr/workers}"> Users </a></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+    const dataDoughnut = {
+        labels: ["Done", "Undone"],
+        datasets: [
+            {
+                label: "Done/Undone Chart",
+                data: [$('#ticketsDone').text(), $('#ticketsUndone').text()],
+                backgroundColor: [
+                    "rgb(94, 194, 74)",
+                    "rgb(189, 32, 32)",
+                ],
+                hoverOffset: 4,
+            },
+        ],
+    };
+    const configDoughnut = {
+        type: "doughnut",
+        data: dataDoughnut,
+        options: {},
+    };
+    let chartBar = new Chart(
+        document.getElementById("done-undone-chart"),
+        configDoughnut
+    );
+</script>
 <script type="text/javascript" th:src="@{/js/toastify.js}"></script>
 </body>
 </html>

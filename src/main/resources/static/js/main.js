@@ -19,5 +19,6 @@ $(document).on('click','#hide-modal',function (){
 $(document).on('click','.close-modal',function () {
     $('#task-modal').fadeOut(300)
     $("#edit-task-modal").fadeOut(300);
+    $("#show-task-modal").fadeOut(300);
     $("#delete-user-modal").fadeOut(300)
 })

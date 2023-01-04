@@ -15,10 +15,12 @@ let smtp_server_port = ""
 let smtp_username = ""
 let smtp_password = ""
 
+
 // CLOSE MODAL //
 
 $(document).on('click','.close-modal',function () {
-    $("#modal").fadeOut(300);
+    $("#user-addition-modal").fadeOut(300);
+    $("#user-edit-modal").fadeOut(300);
     $('#risk-modal').fadeOut(300);
 
 })
@@ -191,7 +193,10 @@ $(document).on('click','#test-db',function (){
         success: function (response){
             if(response === "Successful"){
                 $('#messages').empty().append("<p class='mt-2 text-green-500 font-bold>'>Connected successful!</p>")
-            }else{
+            }else if (response === "This app support only postgresql database at this moment!"){
+                $('#messages').empty().append("<p class='mt-2 text-red-500 font-bold>'>This app supports only postgresql database at this moment!</p>")
+            }
+            else{
                 $('#messages').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
             }
         },
@@ -202,6 +207,107 @@ $(document).on('click','#test-db',function (){
 })
 
 // HR SECTION //
+$(document).ready(function () {
+    let totalPages = 1;
+
+    function getPage(startPage){
+        let type = $('#typeOfWorker').text();
+        let request = null;
+            if (type === "Workers") request = "/admin/hr/workers/getAll";
+            else if (type === "Managers") request = "/admin/hr/managers/getAll";
+        $.ajax({
+            url: request,
+            type: 'GET',
+            data: {
+                page: startPage,
+                size: 10
+            },
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (response) {
+                $('#users-hr-table > tbody').empty()
+                $.each(response.content, (i,user) => {
+                    $('#users-hr-table > tbody').append(user_table_template(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name,user.enabled))
+                })
+                if ($('ul.pagination li').length - 2 !== response.totalPages){
+                    $('ul.pagination').empty();
+                    buildPagination(response);
+                }
+            }
+        })
+    }
+    function buildPagination(response) {
+        let totalPages = response.totalPages;
+        let pageNumber = response.pageable.pageNumber;
+        let numLinks = 10;
+        let prev;
+        if (pageNumber > 0) {
+            prev = '<li><a class="prevPage block px-3 py-2 ml-0 leading-tight  border  rounded-l-lg bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white">\n' +
+                '<span class="sr-only">Previous</span>\n' +
+                '<svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>\n' +
+                '</a></li>';
+        } else {
+            prev = '';
+        }
+        let next = '';
+        if (pageNumber < totalPages) {
+            if(pageNumber !== totalPages - 1) {
+                next = '<li><a class="nextPage block px-3 py-2 leading-tight border rounded-r-lg bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white">\n' +
+                    '<span class="sr-only">Next</span>\n' +
+                    '<svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>\n' +
+                    '</a></li>';
+            }
+        } else {
+            next = '';
+        }
+        let start = pageNumber - (pageNumber % numLinks) + 1;
+        let end = start + numLinks - 1;
+        end = Math.min(totalPages, end);
+        let pagingLink = '';
+        for (let i = start; i <= end; i++) {
+            if (i === pageNumber + 1) {
+                pagingLink += '<li><a class="z-10 px-3 py-2 leading-tight border hover:bg-blue-100 hover:text-blue-700 border-gray-700 bg-gray-700 text-white"> ' + i + ' </a></li>';
+            } else {
+                pagingLink += '<li><a class="px-3 py-2 leading-tight border hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"> ' + i + ' </a></li>';
+            }
+        }
+        pagingLink =  prev + pagingLink + next;
+        $("ul.pagination").append(pagingLink);
+    }
+    $(document).on("click", "ul.pagination li a", function() {
+        let val = $(this).text();
+        let startPage;
+        if ($(this).hasClass('nextPage')) {
+            let activeValue = parseInt($("ul.pagination li.active").text());
+            if (activeValue < totalPages) {
+                let currentActive = $("li.active");
+                startPage = activeValue;
+                getPage(startPage);
+                $("li.active").removeClass("active");
+                currentActive.next().addClass("active");
+            }
+        } else if ($(this).hasClass('prevPage')) {
+            let activeValue = parseInt($("ul.pagination li.active").text());
+            if (activeValue > 1) {
+                startPage = activeValue - 2;
+                getPage(startPage);
+                let currentActive = $("li.active");
+                currentActive.removeClass("active");
+                currentActive.prev().addClass("active");
+            }
+        } else {
+            startPage = parseInt(val - 1);
+            getPage(startPage);
+            $("li.active").removeClass("active");
+            $(this).parent().addClass("active");
+        }
+    });
+    getPage(0);
+})
+
+$(document).on('input','.phone-number', function () {
+    validateEditForm()
+});
 
 $(document).on('click','.lockAccountBnt',function () {
     let currentTD = $(this).closest("tr").find("td");
@@ -215,7 +321,7 @@ $(document).on('click','.lockAccountBnt',function () {
         },
         success: function (response) {
             if(response===false){
-                $(currentTD).find('.lockAccountBnt').attr("class","unlockAccountBnt font-medium text-green-600 dark:text-green-400 hover:underline")
+                $(currentTD).find('.lockAccountBnt').attr("class","unlockAccountBnt font-medium text-green-400 hover:underline")
                 $(currentTD).find('.account-status-section').empty().append("<i class='fa-solid fa-lock-open'></i> Enable")
                 notification("Account successfully deactivated!")
             }
@@ -237,7 +343,7 @@ $(document).on('click','.unlockAccountBnt',function () {
         },
         success: function (response) {
             if(response===true){
-                $(currentTD).find(".unlockAccountBnt").attr("class","lockAccountBnt font-medium text-gray-800 dark:text-gray-400 hover:underline")
+                $(currentTD).find(".unlockAccountBnt").attr("class","lockAccountBnt font-medium text-gray-400 hover:underline")
                 $(currentTD).find('.account-status-section').empty().append("<i class='fa-solid fa-lock'></i> Disable")
                 notification("Account successfully activated!")
             }
@@ -249,20 +355,31 @@ $(document).on('click','.unlockAccountBnt',function () {
 })
 $(document).on('click','.editUserBtn',function (){
     let currentTD = $(this).closest("tr").find("td");
-    $('#user-form').attr('action','/manager/api/editUser')
-    $('.addBtn').text("Edit user")
-    $('#active-role-section').show();
-    $('#userid').val($(currentTD).eq(0).text())
-    $('#name').val($(currentTD).eq(1).text())
-    $('#surname').val($(currentTD).eq(2).text())
-    $('.form-tittle').text("Edit user " +  $('#name').val() )
-    $('#email').val($(currentTD).eq(3).text())
-    $('#phone_number').val($(currentTD).eq(4).text())
-    $('.password').attr('required',false)
+    current_td = currentTD;
+    // $(currentTD).eq(4).text()
+    $.ajax({
+        type: "GET",
+        url: "/manager/api/getUserDetails",
+        data: { "userid" : $(currentTD).eq(0).text() },
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user){
+            $('#edit-id').val(user.id)
+            $('#edit-name').val(user.name)
+            $('#edit-surname').val(user.surname)
+            $('#edit-phone_number').val(user.phone_number)
+            $('#edit-email').val(user.email)
+            $('#edit-department').val(user.department.id)
+        },
+        error: function () {
+            notification("An internal error occurred!")
+        }
+    })
     $.ajax({
         type: "GET",
         url: "/manager/api/getUserRoles",
-        data: { "userid" : $('#userid').val() },
+        data: { "userid" : $(currentTD).eq(0).text() },
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
         },
@@ -276,25 +393,51 @@ $(document).on('click','.editUserBtn',function (){
                     "      <span class='sr-only'>Remove</span>\n" +
                     "  </button>\n" +
                     "</span>");
+
             })
+            $('#user-edit-modal').fadeIn(300)
         },
         error: function (){
             notification("An internal error occurred!")
         }
     })
-    $('#Modal').show();
+})
+$("#user-edit-form").submit(function (e) {
+    e.preventDefault();
+    let form = $(this);
+    $.ajax({
+        type: "patch",
+        url: "/manager/api/editUser",
+        data: form.serialize(),
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user) {
+            $(current_td).eq(1).text(user.name)
+            $(current_td).eq(2).text(user.surname)
+            $(current_td).eq(3).text(user.email)
+            $(current_td).eq(4).text(user.phone_number)
+            $(current_td).eq(5).text(user.department.name)
+            notification("User data updated successfully!")
+            $('#user-edit-modal').fadeOut(300);
+        },
+        error: function (e) {
+            notification(e.responseJSON.message);
+            $('#user-edit-modal').fadeOut(300);
+        }
+    })
 })
 $(document).on('click','.deleteRoleBtn',function () {
     $.ajax({
         url: "/manager/api/deleteUserRole",
         type: "POST",
-        data: { "role" : $(this).val(), "userid" : $("#userid").val() },
+        data: { "role" : $(this).val(), "userid" : $("#edit-id").val() },
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
         },
         success: function (){
             notification("Role deleted successful");
-            $('#Modal').fadeOut(300)
+            $('#user-edit-modal').fadeOut(300)
         },
         error: function (){
             notification("An internal error occurred!")
@@ -302,17 +445,41 @@ $(document).on('click','.deleteRoleBtn',function () {
     })
 })
 $(document).on('click','#addUserBtn',function (){
-    $('.form-tittle').text("Add new user")
-    $('#active-role-section').hide();
-    $('#user-form').attr('action','/manager/api/addUser')
-    $('#name').val("")
-    $('#surname').val("")
-    $('#email').val("")
-    $('#phone_number').val("")
-    $('#password').val("")
-    $('.password').attr('required',true)
-    $('.addBtn').text("Add user")
-    $('#Modal').show();
+    $('#user-addition-modal').fadeIn(300);
+})
+$("#user-addition-form").submit(function (e) {
+    e.preventDefault();
+    let form = $(this);
+    $.ajax({
+        type: "POST",
+        url: "/manager/api/addUser",
+        data: form.serialize(),
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (user) {
+            $('#users-hr-table > tbody:last-child').append("" +
+                "<tr class='border-b bg-gray-900 border-gray-700'>" +
+                "<td class='hidden'>"+user.id+"</td>" +
+                "<td class='py-4 px-6 font-medium text-white whitespace-nowrap'>"+user.name+"</td>" +
+                "<td class='py-4 px-6'>"+user.surname+"</td>" +
+                "<td class='py-4 px-6'>"+user.email+"</td>" +
+                "<td class='py-4 px-6'>"+user.phone_number+"</td>" +
+                "<td class='py-4 px-6'>"+user.department.name+"</td>" +
+                "<td class='py-4 px-6'>" +
+                "<button  class='editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
+                "<button class='deleteUsrBtn font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</button>\n" +
+                "<button class='lockAccountBnt font-medium text-gray-800 dark:text-gray-400 hover:underline'><span class='account-status-section'> <i class='fa-solid fa-lock'></i> Disable</span></button><" +
+                "/td>" +
+                "</tr>")
+            notification("User added successfully!")
+            $('#user-addition-modal').fadeOut(300);
+        },
+        error: function (e) {
+            notification(e.responseJSON.message);
+            $('#user-addition-modal').fadeOut(300);
+        }
+    })
 })
 $(document).on('click','.deleteUsrBtn',function (){
     let currentTD = $(this).closest("tr").find("td");
@@ -367,6 +534,49 @@ $(document).on('input','.user-email-input',function () {
         }
     })
 })
+$(document).on('input, keydown, keyup','#user-search',function (event) {
+    event.preventDefault()
+    let type = $('#typeOfWorker').text();
+    let request = null;
+    if($(this).val().length !== 0) {
+        if (type === "Workers") request = "/manager/hr/workers/" + $(this).val();
+        else if (type === "Managers") request = "/manager/hr/managers/"+ $(this).val();
+        $.ajax({
+            url: request,
+            type: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (response) {
+                $('#users-hr-table > tbody').empty()
+                $.each(response, function (i,user) {
+                    $('#users-hr-table > tbody').append(user_table_template(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name,user.enabled))
+                })
+            },
+            error: function () {
+                $('#users-hr-table > tbody').empty()
+            }
+        })
+    }else {
+        if (type === "Workers") request = "/admin/api/hr/workers/getAllUsers";
+        else if (type === "Managers") request = "/admin/api/hr/managers/getAllUsers";
+       $.ajax({
+           url: request,
+           type: 'GET',
+           beforeSend: function(xhr) {
+               xhr.setRequestHeader(header, token);
+           },
+           success: function (response) {
+               $('#users-hr-table > tbody').empty()
+               $.each(response, function (i,user) {
+                   $('#users-hr-table > tbody').append(user_table_template(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name,user.enabled))
+               })
+           }
+       })
+
+    }
+})
+
 // HR JS VALIDATOR
 $(document).on('input','#name',function () {
     validateForm();
@@ -419,8 +629,8 @@ $(document).on('click','.editDepartment',function () {
     let new_name = $(this).closest("tr").find("td>input");
     current_tr = $(this).closest("tr");
     $.ajax({
-        url: '/admin/department/edit',
-        type: 'post',
+        url: '/admin/api/department/edit',
+        type: 'patch',
         data: { "department_id" : $(current_td).eq(0).text(), 'department_name' : new_name.val() },
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
@@ -429,10 +639,10 @@ $(document).on('click','.editDepartment',function () {
             $(current_td).eq(1).empty().append("<p>"+response.name+"</p>")
             $(current_td).eq(2).empty().append(" <a  class='ediDepartmentBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</a>" +
                 "<a  class='deleteDepartment font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</a>")
-            notification("Successfully edited new department")
+            notification("Successfully edited "+response.name+" department")
         },
-        error: function (){
-            notification("An internal error occurred!")
+        error: function (e){
+            notification(e.responseJSON.message);
         }
     })
 })
@@ -440,8 +650,8 @@ $(document).on('click','.deleteDepartment',function (){
     current_td = $(this).closest("tr").find("td");
     current_tr = $(this).closest("tr");
     $.ajax({
-        url: '/admin/department/delete',
-        type: 'post',
+        url: '/admin/api/department/delete',
+        type: 'delete',
         data: { "department_id" : $(current_td).eq(0).text() },
         beforeSend: function(xhr) {
             xhr.setRequestHeader(header, token);
@@ -452,8 +662,8 @@ $(document).on('click','.deleteDepartment',function (){
                 notification("Successfully removed department")
             }
         },
-        error: function (){
-            notification("An internal error occurred!")
+        error: function (e){
+            notification(e.responseJSON.message);
         }
     })
 })
@@ -462,7 +672,7 @@ $(document).on('click','.addDepartment',function () {
     let currenButton = $(this).closest("tr").find("td>button");
     $(currenButton).empty().append("<i class='fa-solid fa-circle-notch fa-spin'></i>")
     $.ajax({
-        url: '/admin/department/add',
+        url: '/admin/api/department/add',
         type: 'post',
         data: { "department_name" : $(currentInput).val() },
         beforeSend: function(xhr) {
@@ -475,9 +685,9 @@ $(document).on('click','.addDepartment',function () {
                 location.reload()
             }
         },
-        error: function (){
-            $('#addDepartmentBtn').attr('disabled',false);
-            notification("An internal error occurred!")
+        error: function (e){
+            $(currenButton).empty().append("<button class='addDepartment font-medium text-green-500'><i class='fa-solid fa-circle-check'></i> Add department</button>")
+            notification(e.responseJSON.message);
         }
     })
 })
