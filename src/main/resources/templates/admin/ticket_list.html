@@ -51,7 +51,7 @@
     <tbody id="table-content" class="bg-grey-light flex flex-col text-white items-center  overflow-y-scroll w-full" style="height: 90vh;">
     <tr  th:each="ticket : ${ticketList}" th:class="${ticket.status.status == 'NEW' ? 'flex w-full mb-4 bg-green-500 bg-opacity-20' : 'flex w-full mb-4' }" >
         <td th:text="${ticket.id}" class="p-4 w-1/4"></td>
-        <td th:text="${ticket.description}" class="p-4 w-1/4"></td>
+        <td  class="p-4 w-1/4"><span th:text="${ticket.description}" class="ticket-description"></span></td>
         <td th:text="${ticket.notifier_name + ' ' + ticket.notifier_surname}" class="p-4 w-1/4"></td>
         <td  th:text="${ticket.ticket_time}" class="p-4 w-1/4"></td>
         <td th:text="${ticket.status.status}" class="p-4 text-left w-1/4"></td>
@@ -65,6 +65,20 @@
     </table>
     </section>
 </main>
+<style>
+    .ticket-description{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        cursor: pointer;
+        padding-left: 5px;
+        width:200px;
+        float:left;
+        margin:5px;
+    }
+</style>
 <script th:src="@{/js/moment-with-locales.min.js}"></script>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/functions.js}"></script>

@@ -1,4 +1,26 @@
-
+let long = false;
+$(document).on("click", ".ticket-description", function (e) {
+    if(!long){
+        long=true;
+        let max = 0;
+        $(this).css("-webkit-line-clamp", "99");
+        $($(this).parent()).find(".elementText").each(function(){
+            $(this).css("-webkit-line-clamp", "99");
+            max = Math.max(max, parseInt($(this).css( "height" )) );
+        });
+        $($(this).parent()).find(".elementText").each(function(){
+            $(this).height(max);
+        });
+    }
+    else{
+        long=false;
+        $(this).css("-webkit-line-clamp", "1");
+        $(this).height('auto');
+        $($(this).parent()).find(".elementText").each(function(){
+            $(this).css("-webkit-line-clamp", "1").height('auto');
+        });
+    }
+});
 $(document).on('click','.editProfileBtn',function () {
     $.ajax({
         url: '/api/getUserDetails',
