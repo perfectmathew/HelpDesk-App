@@ -50,12 +50,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
-                .antMatchers("/","/showstatus","/status","/error","/sendTicket","/home","/404").permitAll()
+                .antMatchers("/register","/signup","/showstatus","/status","/error","/404").permitAll()
+                .antMatchers("/user","/user/**").hasAnyAuthority("USER","ADMIN")
                 .antMatchers("/admin","/admin/**").hasAuthority("ADMIN")
                 .antMatchers("/manager","/manager/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS")
                 .antMatchers("/t","/t/**","tickets","/tickets/**").hasAnyAuthority("ADMIN","WORKER","DEPARTMENT_BOSS")
                 .antMatchers("/worker","/worker/**").hasAuthority("WORKER")
-                .antMatchers("/api","/api/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS","WORKER")
+                .antMatchers("/api","/api/**").hasAnyAuthority("ADMIN","DEPARTMENT_BOSS","WORKER","USER")
                 .antMatchers("/resources/*","/resources/**/*", "/uploads/**/*", "/uploads/*","/css/**","/js/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin().loginPage("/auth").failureUrl("/auth?error=true")

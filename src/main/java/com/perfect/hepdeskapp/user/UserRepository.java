@@ -36,4 +36,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     public List<User> findUserByEmailAndRoleName(@Param("email") String email,@Param("roleName") String roleName);
     @Query("SELECT DISTINCT u FROM User u JOIN u.roleSet rs JOIN rs.userSet WHERE rs.name = :roleName")
     public Page<User> findUserByRoleNamePageable(@Param("roleName") String roleName, Pageable pageable);
+    @Query("SELECT u from User u WHERE u.ticketSet.size > 0  ORDER BY u.ticketSet.size DESC ")
+    public List<User> TopTroubleMakers(Pageable pageable);
 }

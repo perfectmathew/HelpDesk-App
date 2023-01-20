@@ -17,8 +17,12 @@ $(document).on('click','#hide-modal',function (){
     $('#Modal').hide();
 })
 $(document).on('click','.close-modal',function () {
+    $('#modal').fadeOut(300)
     $('#task-modal').fadeOut(300)
     $("#edit-task-modal").fadeOut(300);
     $("#show-task-modal").fadeOut(300);
+    $('#show-solution-modal').fadeOut(300)
+    $('#show-solution_db-modal').fadeOut(300)
     $("#delete-user-modal").fadeOut(300)
+    $('#reject-solution-modal').fadeOut(300)
 })

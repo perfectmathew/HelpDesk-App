@@ -80,6 +80,14 @@ public class UserController {
         model.addAttribute("type","Administrators");
         return "admin/admin_hr";
     }
+    @RequestMapping("/admin/hr/users")
+    public String adminHrUsersPanel(Model model){
+        model.addAttribute("departments",departmentRepository.findAll());
+        model.addAttribute("roles",roleRepository.findAll());
+        model.addAttribute("users",userRepository.findUserByRoleName("USER"));
+        model.addAttribute("type","Users");
+        return "admin/admin_hr";
+    }
     @RequestMapping("/manager/hr/workers")
     public String managerWorkersPanel(Model model){
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
@@ -94,19 +102,57 @@ public class UserController {
     @GetMapping("/manager/hr/{type}/{value}")
     @ResponseBody
     public List<User> searchUserByEmail(@PathVariable String type, @PathVariable String value){
-        if (type.equals("managers")){
-            if (!userRepository.findUserByEmailAndRoleName(value,"DEPARTMENT_BOSS").isEmpty()){
-               return userRepository.findUserByEmailAndRoleName(value,"DEPARTMENT_BOSS");
+        switch (type) {
+            case "managers" -> {
+                if (!userRepository.findUserByEmailAndRoleName(value, "DEPARTMENT_BOSS").isEmpty()) {
+                    return userRepository.findUserByEmailAndRoleName(value, "DEPARTMENT_BOSS");
+                } else throw new EmailExistsException("No records was found!");
             }
-            else throw new EmailExistsException("No records was found!");
-        } else if (type.equals("workers")) {
-            if (!userRepository.findUserByEmailAndRoleName(value,"WORKER").isEmpty()){
-                return userRepository.findUserByEmailAndRoleName(value,"WORKER");
+            case "workers" -> {
+                if (!userRepository.findUserByEmailAndRoleName(value, "WORKER").isEmpty()) {
+                    return userRepository.findUserByEmailAndRoleName(value, "WORKER");
+                } else throw new EmailExistsException("No users was found!");
             }
-            else throw new EmailExistsException("No users was found!");
-        }else {
-            return userRepository.findAll();
+            case "users" -> {
+                if (!userRepository.findUserByEmailAndRoleName(value, "USER").isEmpty()) {
+                    return userRepository.findUserByEmailAndRoleName(value, "USER");
+                } else throw new EmailExistsException("No users was found!");
+            }
+            default -> {
+                return userRepository.findAll();
+            }
         }
+    }
+    @GetMapping("/admin/api/hr/users/{userid}/{decision}")
+    public String approveUserAction(HttpServletRequest request,@PathVariable Long userid, @PathVariable String decision) throws IOException{
+       User user = userRepository.findUserById(userid);
+        if (decision.equals("approve")){
+            user.setEnabled(true);
+            userRepository.saveAndFlush(user);
+            if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
+                try {
+                    notify.sendEmail(user.getEmail(), "Helpdesk | Your account has been activated", "<p>Welcome <strong>" + user.getName() + "</strong>, </p>" +
+                            "<p>You can now <strong><a href='" + Utility.getSiteURL(request) + "/auth'>log in</a><strong> to your account!</p>" +
+                            "<p>Thanks for your trust, " +
+                            "Helpdesk System</p>");
+                } catch (MessagingException me) {
+                    me.printStackTrace();
+                }
+            }
+        }else {
+            if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
+                try {
+                    notify.sendEmail(user.getEmail(), "Helpdesk | Your account has not been approved", "<p>Welcome <strong>" + user.getName() + "</strong>, </p>" +
+                            "<p>Unfortunately, your account was not approved by the administrator and was deleted. If this is an error then please contact them.</p>" +
+                            "<p>Thanks for your trust, " +
+                            "Helpdesk System</p>");
+                } catch (MessagingException me) {
+                    me.printStackTrace();
+                }
+            }
+            userRepository.delete(user);
+        }
+        return "redirect:/admin/hr/users";
     }
     @GetMapping("/admin/api/hr/{type}/getAllUsers")
     @ResponseBody
@@ -115,6 +161,7 @@ public class UserController {
             case "managers" ->
                     userRepository.findUserByRoleName(roleRepository.findRoleByName("DEPARTMENT_BOSS").getName());
             case "workers" -> userRepository.findUserByRoleName(roleRepository.findRoleByName("WORKER").getName());
+            case "users" -> userRepository.findUserByRoleName(roleRepository.findRoleByName("USER").getName());
             default -> userRepository.findAll();
         };
     }
@@ -126,6 +173,7 @@ public class UserController {
             case "managers" ->
                     userRepository.findUserByRoleNameAndPageable(roleRepository.findRoleByName("DEPARTMENT_BOSS").getName(),paging);
             case "workers" -> userRepository.findUserByRoleNameAndPageable(roleRepository.findRoleByName("WORKER").getName(),paging);
+            case "users" -> userRepository.findUserByRoleNameAndPageable(roleRepository.findRoleByName("USER").getName(),paging);
             default -> userRepository.findAll(paging);
         };
     }
@@ -148,10 +196,31 @@ public class UserController {
     // API SECTION
     @PostMapping("/admin/hr/user/lock")
     @ResponseBody
-    public boolean lockAccount(@RequestParam("operation") boolean operation, @RequestParam("userid") Long userid){
+    public boolean lockAccount(HttpServletRequest request,@RequestParam("operation") boolean operation, @RequestParam("userid") Long userid) throws IOException {
         User user = userRepository.findUserById(userid);
+        String op = "disabled";
+        String message_text;
         user.setEnabled(operation);
         userRepository.saveAndFlush(user);
+        if (operation) {
+            op = "enabled";
+            message_text = "<p>Your account has been activated! You can now log into it and use our application.</p>" +
+                    "<p>Click <strong><a href='"+Utility.getSiteURL(request)+"/auth'> here</strong> to login page.</p>";
+        }else {
+            message_text = "<p>Unfortunately, your account has been disabled. You will no longer be able to log in and use our application.</p>" +
+                    "<p>If you think it's an error contact the application administrator.</p>";
+        }
+
+        if (user.getRoleSet().contains(roleRepository.findRoleByName("USER"))){
+            if (!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
+                try{
+                    notify.sendEmail(user.getEmail(),"HelpDesk | Your account has been "+op,"<p>Welcome <strong>"+user.getName()+"</strong>, </p>" +
+                            message_text+"<p>Thanks for your trust, <br> Helpdesk System</p>");
+                }catch (MessagingException me){
+                    me.printStackTrace();
+                }
+            }
+        }
         return operation;
     }
     @PostMapping( "/manager/api/addUser")
@@ -265,6 +334,7 @@ public class UserController {
         if(user!=null){
             if(!user.getRoleSet().isEmpty()) user.getRoleSet().clear();
             if(!user.getUserTickets().isEmpty()) user.getUserTickets().clear();
+            if(!user.getTicketSet().isEmpty()) user.getTicketSet().clear();
             userRepository.delete(user);
             return "Successful";
         }
@@ -357,7 +427,7 @@ public class UserController {
         User user = userRepository.findUserByEmail(email);
         if(!user.getEmail().equals(user_email)){
             User checkIfUserExists = userRepository.findUserByEmail(user_email);
-            if(checkIfUserExists != null){
+            if(checkIfUserExists == null){
                 user.setEmail(user_email);
                 user.setName(user_name);
                 user.setSurname(user_surname);
@@ -370,7 +440,7 @@ public class UserController {
                 userRepository.saveAndFlush(user);
                 return "Data has been updated successfully";
             } else {
-                return "This email address already exists";
+                throw new EmailExistsException("This email already exists!");
             }
         }else {
             user.setName(user_name);

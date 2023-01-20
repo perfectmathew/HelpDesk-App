@@ -8,8 +8,11 @@ let currentPriority;
 
 // MANAGER HR SECTION//
 
-
-$(document).on('click','.deleteUserBtn',function () {
+$(document).on('click','.editTicketBtn',function () {
+    let currentTD = $(this).closest("tr").find("td");
+    window.location.replace("/t/"+$(currentTD).eq(0).text())
+})
+$(document).on('click','.deleteUsrBtn',function () {
     current_tr = $(this).closest("tr")
     let currentTD = $(this).closest("tr").find("td");
     $('.modal-content').empty().append("<input type='hidden' class='currentDeleteId' value='"+$(currentTD).eq(0).text()+"'> <p>Before deleting, make sure that this user is assigned to no active ticket.</p>")
@@ -141,7 +144,7 @@ $(document).ready(function () {
             }, success: function (response) {
                 $('#users-hr-table > tbody').empty()
                 $.each(response.content, (i,user) => {
-                    $('#users-hr-table > tbody').append(user_table_template(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name,user.enabled))
+                    $('#users-hr-table > tbody').append(user_table_template_m(user.id,user.name,user.surname,user.email,user.phone_number,user.department.name))
                 })
                 if ($('ul.pagination li').length - 2 !== response.totalPages){
                     $('ul.pagination').empty();
@@ -278,8 +281,8 @@ $(document).on('click','#edit-task-ticket',function () {
             notification("Successfully updated task")
             $('#edit-task-ticket').empty().append("<i class='fa-solid fa-pen'></i> Edit task")
         },
-        error: function () {
-            notification("An internal error occurred!")
+        error: function (e) {
+            notification(e.responseJSON.message)
             $('#edit-task-ticket').empty().append("<i class='fa-solid fa-pen'></i> Edit task")
         }
     })
@@ -326,8 +329,8 @@ $(document).on('click','#add-task-to-ticket',function () {
             $('#task-modal').fadeOut(300)
             notification("Task successfully added.")
         },
-        error: function (){
-            notification("An internal error occurred!")
+        error: function (e){
+            notification(e.responseJSON.message)
         }
     })
 })

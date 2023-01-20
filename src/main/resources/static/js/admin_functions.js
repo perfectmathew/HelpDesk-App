@@ -24,7 +24,10 @@ $(document).on('click','.close-modal',function () {
     $('#risk-modal').fadeOut(300);
 
 })
-
+$(document).on('click','.editTicketBtn',function () {
+    let currentTD = $(this).closest("tr").find("td");
+    window.location.replace("/t/"+$(currentTD).eq(0).text())
+})
 // DELETE TICKET SECTION //
 
 $(document).on('click','.deleteTicketBtn',function () {
@@ -209,12 +212,12 @@ $(document).on('click','#test-db',function (){
 // HR SECTION //
 $(document).ready(function () {
     let totalPages = 1;
-
     function getPage(startPage){
         let type = $('#typeOfWorker').text();
         let request = null;
             if (type === "Workers") request = "/admin/hr/workers/getAll";
             else if (type === "Managers") request = "/admin/hr/managers/getAll";
+            else if (type === "Users") request = "/admin/hr/users/getAll"
         $.ajax({
             url: request,
             type: 'GET',
@@ -321,7 +324,7 @@ $(document).on('click','.lockAccountBnt',function () {
         },
         success: function (response) {
             if(response===false){
-                $(currentTD).find('.lockAccountBnt').attr("class","unlockAccountBnt font-medium text-green-400 hover:underline")
+                $(currentTD).find('.lockAccountBnt').attr("class","ml-2 unlockAccountBnt font-medium text-green-400 hover:underline")
                 $(currentTD).find('.account-status-section').empty().append("<i class='fa-solid fa-lock-open'></i> Enable")
                 notification("Account successfully deactivated!")
             }
@@ -343,7 +346,7 @@ $(document).on('click','.unlockAccountBnt',function () {
         },
         success: function (response) {
             if(response===true){
-                $(currentTD).find(".unlockAccountBnt").attr("class","lockAccountBnt font-medium text-gray-400 hover:underline")
+                $(currentTD).find(".unlockAccountBnt").attr("class","ml-2 lockAccountBnt font-medium text-gray-400 hover:underline")
                 $(currentTD).find('.account-status-section').empty().append("<i class='fa-solid fa-lock'></i> Disable")
                 notification("Account successfully activated!")
             }
@@ -397,8 +400,8 @@ $(document).on('click','.editUserBtn',function (){
             })
             $('#user-edit-modal').fadeIn(300)
         },
-        error: function (){
-            notification("An internal error occurred!")
+        error: function (e){
+            notification(e.responseJSON.message)
         }
     })
 })
@@ -507,8 +510,8 @@ $(document).on('click','#delete-user-permanently',function () {
             }
             $('#delete-user-modal').fadeOut(300)
         },
-        error: function () {
-            notification("An internal error occurred!")
+        error: function (e) {
+            notification(e.responseJSON.message)
             $('#delete-user-modal').fadeOut(300)
         }
     })
@@ -541,6 +544,7 @@ $(document).on('input, keydown, keyup','#user-search',function (event) {
     if($(this).val().length !== 0) {
         if (type === "Workers") request = "/manager/hr/workers/" + $(this).val();
         else if (type === "Managers") request = "/manager/hr/managers/"+ $(this).val();
+        else if (type === "Users") request = "/manager/hr/users/"+ $(this).val();
         $.ajax({
             url: request,
             type: 'GET',
@@ -560,6 +564,7 @@ $(document).on('input, keydown, keyup','#user-search',function (event) {
     }else {
         if (type === "Workers") request = "/admin/api/hr/workers/getAllUsers";
         else if (type === "Managers") request = "/admin/api/hr/managers/getAllUsers";
+        else if (type === "Users") request = "/admin/api/hr/users/getAllUsers";
        $.ajax({
            url: request,
            type: 'GET',

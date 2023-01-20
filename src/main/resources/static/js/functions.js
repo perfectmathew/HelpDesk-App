@@ -21,6 +21,7 @@ $(document).on("click", ".ticket-description", function (e) {
         });
     }
 });
+
 $(document).on('click','.editProfileBtn',function () {
     $.ajax({
         url: '/api/getUserDetails',
@@ -62,9 +63,7 @@ $(document).on('click','.saveProfileBtn',function () {
             xhr.setRequestHeader(header, token);
         },
         success: function (response) {
-            if(response === "This email address already exists"){
-                $('#profile-user-email').addClass("border-2 border-red-500")
-            }
+
             if(response === "Data has been updated successfully"){
                 $.ajax({
                     url: '/api/getUserDetails',
@@ -92,8 +91,8 @@ $(document).on('click','.saveProfileBtn',function () {
             }
             notification(response)
         },
-        error: function () {
-
+        error: function (e) {
+            notification(e.responseJSON.message)
         }
     })
 })  
@@ -121,7 +120,7 @@ $(document).on('change','#select-by-status',function () {
                 $('#table-content').append("<tr  class='item flex w-full mb-4'>\n" +
                     "        <td  class='p-4 w-1/4'>"+ticket.id+"</td>\n" +
                     "        <td  class='p-4 w-1/4'>"+ticket.description+"</td>\n" +
-                    "        <td  class='p-4 w-1/4'>"+ticket.notifier_name + '  '+ ticket.notifier_surname +"</td>\n" +
+                    "        <td  class='p-4 w-1/4'>"+ticket.notifier.name + '  '+ ticket.notifier.surname +"</td>\n" +
                     "        <td  class='p-4 w-1/4'>"+ moment(new Date(ticket.ticket_time)).format('MM dd YYYY, h:mm:ss') +"</td>\n" +
                     "        <td  class='p-4 w-1/4'>"+ticket.status.status+"</td>\n" +
                     "<td class='p-4 w-1/4'>" + ticket.priority.priority_name + "</td>" +

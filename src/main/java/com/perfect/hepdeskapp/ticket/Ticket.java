@@ -4,11 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.perfect.hepdeskapp.priority.Priority;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.department.Department;
+import com.perfect.hepdeskapp.solutions.Solution;
 import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.task.Task;
 import com.perfect.hepdeskapp.user.User;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -20,14 +24,7 @@ public class Ticket {
     private Long id;
     @NotNull
     private String description;
-    @NotNull
-    private String notifier_name;
-    @NotNull
-    private String notifier_surname;
-    @NotNull
-    private String notifier_phonenumber;
-    @NotNull
-    private String notifier_email;
+
     @NotNull
     private String access_token;
     private Timestamp ticket_time;
@@ -41,6 +38,11 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "departmentid")
     private Department department;
+
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "user_id")
+    private User notifier;
     @ManyToMany
     @JoinTable(
             name = "ticket_attachments",
@@ -55,6 +57,9 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "task_id")
     )
     private Set<Task> ticketTasksSet = new HashSet<>();
+
+
+
     @JsonIgnore
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(
@@ -63,6 +68,12 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> userList = new ArrayList<>();
+
+
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @JoinColumn(name = "solutionId")
+    @JsonIgnore
+    private Solution solution;
 
     public Priority getPriority() {
         return priority;
@@ -88,37 +99,7 @@ public class Ticket {
         this.description = description;
     }
 
-    public String getNotifier_name() {
-        return notifier_name;
-    }
 
-    public void setNotifier_name(String notifier_name) {
-        this.notifier_name = notifier_name;
-    }
-
-    public String getNotifier_surname() {
-        return notifier_surname;
-    }
-
-    public void setNotifier_surname(String notifier_surname) {
-        this.notifier_surname = notifier_surname;
-    }
-
-    public String getNotifier_phonenumber() {
-        return notifier_phonenumber;
-    }
-
-    public void setNotifier_phonenumber(String notifier_phonenumber) {
-        this.notifier_phonenumber = notifier_phonenumber;
-    }
-
-    public String getNotifier_email() {
-        return notifier_email;
-    }
-
-    public void setNotifier_email(String notifier_email) {
-        this.notifier_email = notifier_email;
-    }
 
     public String getAccess_token() {
         return access_token;
@@ -171,5 +152,21 @@ public class Ticket {
     }
     public void removeTaskFromTicket(Task task) {
         this.ticketTasksSet.remove(task);
+    }
+
+    public User getNotifier() {
+        return notifier;
+    }
+
+    public void setNotifier(User notifier) {
+        this.notifier = notifier;
+    }
+
+    public Solution getSolution() {
+        return solution;
+    }
+
+    public void setSolution(Solution solution) {
+        this.solution = solution;
     }
 }

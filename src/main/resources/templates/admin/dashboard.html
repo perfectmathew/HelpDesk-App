@@ -32,10 +32,20 @@
             <div class="bg-white shadow-md rounded-2xl px-8 pt-6 pb-8 mb-4">
                 <h1 th:text="${'Welcome ' + loggedUser.name + '!'}">Welcome, {{USER}}!</h1>
                 <hr>
-                   <h2 class="text-2xl font-bold">App stats</h2>
+                   <h2 id="stats_name" class="text-2xl font-bold">APP STATS</h2>
                 <div class="pl-2 ml-2 mt-2">
-                    <h4>Done/Undone Tickets</h4>
-                    <hr class="mt-2">
+                    <div class="inline-flex">
+                        <button class="done-stats bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l-2xl">
+                            APP STATS
+                        </button>
+                        <button class="trouble-stats bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-r-2xl">
+                            TOP TROUBLE MAKERS
+                        </button>
+                    </div>
+
+                </div>
+                <section id="cart-content">
+                <div class="pl-2 ml-2 mt-2">
                     <canvas class="p-10" id="done-undone-chart"></canvas>
                 </div>
                 <div class="flex justify-center items-center">
@@ -68,11 +78,42 @@
                         <h4><a th:href="@{/admin/hr/workers}"> Users </a></h4>
                     </div>
                 </div>
+                </section>
+                <section class="hidden mt-2" id="trouble-makers-section">
+                    <table class="w-full text-sm text-left text-white">
+                        <thead class="text-xs text-white uppercase rounded bg-gray-50 bg-gray-700">
+                        <tr class="border-b bg-gray-900 border-gray-700">
+                            <td class="py-4 px-6">Name</td>
+                            <td class="py-4 px-6">Number of tickets</td>
+                        </tr>
+                        </thead>
+                        <tbody class="rounded">
+                            <tr class="border-b bg-gray-900 border-gray-700" th:if="${mostTroubleMakers != null}" th:each="user : ${mostTroubleMakers}">
+                                <td class="py-4 px-6" th:text="${user.name + ' ' + user.surname}"></td>
+                                <td class="py-4 px-6 text-right" th:text="${user.ticketSet.size()}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
             </div>
         </div>
     </section>
 </main>
 <script>
+    let cart_content;
+    $(document).on('click','.done-stats',function () {
+        cart_content = $('#cart-content').html()
+        $('#stats_name').html("<strong>APP</strong> STATS")
+        $('#trouble-makers-section').hide()
+        $('#cart-content').show()
+
+    })
+    $(document).on('click','.trouble-stats',function () {
+        cart_content = $('#cart-content').html()
+        $('#stats_name').html("TOP <strong>10</strong> TROUBLE MAKERS")
+        $('#cart-content').hide()
+        $('#trouble-makers-section').show()
+    })
     const dataDoughnut = {
         labels: ["Done", "Undone"],
         datasets: [

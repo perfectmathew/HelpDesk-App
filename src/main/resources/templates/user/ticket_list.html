@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" xmlns="http://www.w3.org/1999/html"
+      class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <title>HelpDesk | Manager > Ticket list</title>
+  <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+  <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+  <link rel="stylesheet" type="text/css" th:href="@{/css/toastify.css}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/c0c6be1449.js" crossorigin="anonymous"></script>
+  <script th:src="@{/js/JQuery/1.7.1/jquery.min.js}"></script>
+  <script th:src="@{/js/JQuery/3.5.0/jquery.min.js}"></script>
+</head>
+<body>
+<main class="flex">
+  <nav  th:insert="fragments/header :: header_fragment"></nav>
+  <section class="flex-1 bg-gray-900">
+    <table class="text-left w-full">
+      <thead class="bg-black flex text-white w-full">
+      <tr class="flex w-full mb-4">
+        <th class="p-4 w-1/4">ID
+          <button type="button" class="text-white" id="sort-by-id"><i class="fa-solid fa-sort"></i></button>
+        </th>
+        <th class="p-4 w-1/4">Message</th>
+        <th class="p-4 w-1/4">Notifier name</th>
+        <th class="p-4 w-1/4">Date
+          <button type="button" class="text-white" id="sort-by-date"><i class="fa-solid fa-sort"></i></button>
+        </th>
+        <th class="p-4 w-1/4">Status
+          <select class="rounded text-gray-800" id="select-by-status">
+            <option value="0">SELECT OPTION</option>
+            <option th:each="status : ${statusList}" th:value="${status.status}" th:text="${status.status}"></option>
+          </select>
+        </th>
+        <th class="p-4 w-1/4">Priority</th>
+        <th class="p-4 w-1/4">Action</th>
+      </tr>
+      </thead>
+      <tbody id="table-content" class="bg-grey-light flex flex-col text-white items-center  overflow-y-scroll w-full" style="height: 90vh;">
+      <tr  th:each="ticket : ${ticketList}" th:class="${ticket.status.status == 'NEW' ? 'flex w-full mb-4 bg-green-500 bg-opacity-20' : 'flex w-full mb-4' }" >
+        <td class="hidden" th:text="${'/status?ticket-id='+ticket.id+'&ticket-token='+ticket.access_token}"></td>
+        <td  th:text="${ticket.id}" class="p-4 w-1/4"></td>
+        <td  class="p-4 w-1/4"><span th:text="${ticket.description}" class="ticket-description"></span></td>
+        <td th:text="${ticket.notifier.name + ' ' + ticket.notifier.surname}" class="p-4 w-1/4"></td>
+        <td th:text="${ticket.ticket_time}" class="p-4 w-1/4"></td>
+        <td th:text="${ticket.status.status}" class="p-4 w-1/4"></td>
+        <td th:class="${ticket.priority.priority_name == 'HIGH' ? 'text-left p-4 w-1/4 text-red-500 font-bold' : 'text-left p-4 w-1/4 text-white'}" th:text="${ticket.priority.priority_name}"></td>
+        <td  class="p-4 w-1/4">
+          <button type="button" class="editTicketBtn text-white w-12 sm:w-6 bg-yellow-500 hover:text-black rounded ease-in-out"><a th:href="${'/status?ticket-id='+ticket.id+'&ticket-token='+ticket.access_token}"><i class="fa-solid fa-pen-to-square"></i></a></button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+<style>
+  .ticket-description{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    cursor: pointer;
+    padding-left: 5px;
+    width:200px;
+    float:left;
+    margin:5px;
+  }
+</style>
+<script th:src="@{/js/moment-with-locales.min.js}"></script>
+<script type="application/javascript" th:src="@{/js/main.js}"></script>
+<script type="application/javascript" th:src="@{/js/user_functions.js}"></script>
+<script th:src="@{/js/functions.js}"></script>
+<script type="text/javascript" th:src="@{/js/toastify.js}"></script>
+</body>
+</html>

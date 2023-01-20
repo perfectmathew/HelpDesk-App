@@ -45,7 +45,9 @@ public class User {
     @JsonIgnore
     @ManyToMany(mappedBy = "userList")
     private List<Ticket> userTickets = new ArrayList<>();
-
+    @JsonIgnore
+    @OneToMany(mappedBy = "notifier")
+    public List<Ticket> ticketSet = new ArrayList<>();
 
     public User(){
 
@@ -157,6 +159,14 @@ public class User {
     }
     public void removeTicketFromUser(Ticket ticket){
         this.userTickets.remove(ticket);
+    }
+
+    public List<Ticket> getTicketSet() {
+        return ticketSet;
+    }
+
+    public void setTicketSet(List<Ticket> ticketSet) {
+        this.ticketSet = ticketSet;
     }
 
     public boolean isEnabled() {

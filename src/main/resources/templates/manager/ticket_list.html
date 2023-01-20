@@ -52,7 +52,7 @@
             <tr  th:each="ticket : ${ticketList}" th:class="${ticket.status.status == 'NEW' ? 'flex w-full mb-4 bg-green-500 bg-opacity-20' : 'flex w-full mb-4' }" >
                 <td th:text="${ticket.id}" class="p-4 w-1/4"></td>
                 <td  class="p-4 w-1/4"><span th:text="${ticket.description}" class="ticket-description"></span></td>
-                <td th:text="${ticket.notifier_name + ' ' + ticket.notifier_surname}" class="p-4 w-1/4"></td>
+                <td th:text="${ticket.notifier.name + ' ' + ticket.notifier.surname}" class="p-4 w-1/4"></td>
                 <td th:text="${ticket.ticket_time}" class="p-4 w-1/4"></td>
                 <td th:text="${ticket.status.status}" class="p-4 w-1/4"></td>
                 <td th:class="${ticket.priority.priority_name == 'HIGH' ? 'text-left p-4 w-1/4 text-red-500 font-bold' : 'text-left p-4 w-1/4 text-white'}" th:text="${ticket.priority.priority_name}"></td>
@@ -80,6 +80,7 @@
 </style>
 <script th:src="@{/js/moment-with-locales.min.js}"></script>
 <script type="application/javascript" th:src="@{/js/main.js}"></script>
+<script type="application/javascript" th:src="@{/js/manager_functions.js}"></script>
 <script th:src="@{/js/functions.js}"></script>
 <script type="text/javascript" th:src="@{/js/toastify.js}"></script>
 </body>

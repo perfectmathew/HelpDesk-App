@@ -3,6 +3,7 @@ package com.perfect.hepdeskapp.ticket;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.status.Status;
 import com.perfect.hepdeskapp.user.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +26,10 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     public List<Ticket> findTicketsByDepartmentAndStatusContainingArchivedOrderByTicket_time(@Param("department") Department department);
     @Query("SELECT t FROM Ticket t")
     public List<Ticket> findAllByTicket_time(Sort sort);
+    @Query("SELECT t FROM Ticket t WHERE t.notifier = :user ORDER BY t.priority.id DESC, t.ticket_time")
+    public List<Ticket> findTicketsByNotifier(@Param("user") User user);
+    @Query("SELECT t FROM Ticket t WHERE t.notifier = :user and t.status = :status ORDER BY t.priority.id DESC, t.ticket_time")
+    public List<Ticket> findTicketsByNotifierAndStatus(@Param("user") User user,@Param("status") Status status);
     @Query("SELECT t FROM Ticket t WHERE t.department = :department and t.status = :status ORDER BY t.priority.id DESC, t.ticket_time")
     public List<Ticket> findTicketsByDepartmentAndStatus(@Param("department") Department department, @Param("status") Status status);
     @Query("SELECT t FROM Ticket t WHERE t.department = :department AND t.status.status <> 'ARCHIVED' ORDER BY t.priority.id DESC, t.ticket_time")
@@ -33,6 +38,8 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     public List<Ticket> findTicketsByDepartment(@Param("department") Long department);
     @Query("SELECT DISTINCT t FROM Ticket t JOIN t.userList ul JOIN ul.userTickets ut where ul.email = :email AND (t.status.status <> 'DONE' AND t.status.status <> 'ARCHIVED') ORDER BY t.priority.id DESC, t.ticket_time")
     public List<Ticket> findTicketsByUserListContaining(@Param("email")  String email);
+    @Query("SELECT DISTINCT t FROM Ticket t JOIN t.userList ul JOIN ul.userTickets WHERE t.id = :id")
+    public List<Ticket> findTicketsByUserList(@Param("id") Long id);
     @Query("SELECT t FROM Ticket t WHERE t.status.status = :status")
     public List<Ticket> findAllByStatus(@Param("status") String status);
     @Query("SELECT t FROM Ticket t WHERE t.department = :department and t.status = :status")
@@ -51,5 +58,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     public List<Ticket> findTicketsByStatusAndUserListContaining(@Param("email")  String email);
     @Query("SELECT t FROM Ticket t WHERE t.department = :department AND (t.status.status = 'DONE' and t.status.status =  'ARCHIVED')")
     public List<Ticket> ListOfDoneTickets(@Param("department") Department department);
+    @Query("SELECT t FROM Ticket t ORDER BY t.notifier.ticketSet.size DESC ")
+    public List<Ticket> ListOfMostTroubleMakers(Pageable pageable);
 
 }

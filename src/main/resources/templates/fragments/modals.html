@@ -150,6 +150,114 @@
   </div>
 </div>
 
+<div th:fragment="show_solution_modal" id="show-solution-modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+  <div class="fixed z-10 inset-0 overflow-y-auto">
+    <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+      <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <div class="task-modal-content mt-6">
+                <input type="hidden" id="show-solution-id">
+                <p class="font-semibold text-center">Solution content:</p>
+                <textarea id="show-solution-description" placeholder="Solution content" class="m-2 pl-2 pt-1 w-full text-center font-light"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button id="approve-edit-solution" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="m-2 inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
+          ><i class="fa-solid fa-circle-check"></i> Approve edit</button>
+          <button type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="close-modal m-2 inline-block px-6 py-2.5 bg-gray-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-gray-700 hover:shadow-lg focus:bg-gray-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-gray-800 active:shadow-lg transition duration-150 ease-in-out"
+          ><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:fragment="reject_solution_modal" id="reject-solution-modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+  <div class="fixed z-10 inset-0 overflow-y-auto">
+    <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+      <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <div class="task-modal-content mt-6">
+                <input type="hidden" id="reject-solution-id">
+                <p class="font-semibold text-center">Solution rejection description:</p>
+                <textarea id="reject-solution-description" placeholder="Rejection description" class="m-2 pl-2 pt-1 w-full text-center font-light" required></textarea>
+             <p id="letters-total" class="mt-1 text-right "><span id="numbers-of-letters"></span>/255</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button id="approve-reject-solution" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="m-2 inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
+          ><i class="fa-solid fa-circle-check"></i> Send reject</button>
+          <button type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="close-modal m-2 inline-block px-6 py-2.5 bg-gray-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-gray-700 hover:shadow-lg focus:bg-gray-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-gray-800 active:shadow-lg transition duration-150 ease-in-out"
+          ><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:fragment="show_solution_db_modal" id="show-solution_db-modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+  <div class="fixed z-10 inset-0 overflow-y-auto">
+    <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+      <div  class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <div class="task-modal-content mt-6">
+                <p class="font-semibold text-center">Solutions database:</p>
+                <input type="text" id="search-in-solution-db" placeholder="Input to search" class="mt-2 pl-2 border border-b text-xl w-full">
+                <div id="solution_db_section" class="mt-2 relative overflow-x-auto shadow-md sm:rounded-l">
+                  <table id="solution-db-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
+                    <tr>
+                      <th class="hidden"></th>
+                      <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">Solution</th>
+                      <th scope="col" class="px-6 py-3">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                  </table>
+                </div>
+                <nav aria-label="Solutions pagination" class="mt-3 text-center mt-3">
+                  <ul class="pagination inline-flex items-center -space-x-px">
+                    <li>
+                      <a class="block px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <span class="sr-only">Previous</span>
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                      </a>
+                    </li>
+                    <li>
+                      <a  class="block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <span class="sr-only">Next</span>
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="close-modal m-2 inline-block px-6 py-2.5 bg-gray-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-gray-700 hover:shadow-lg focus:bg-gray-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-gray-800 active:shadow-lg transition duration-150 ease-in-out"
+          ><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div th:fragment="user_addition_modal" id="user-addition-modal" class="relative z-10 hidden"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>

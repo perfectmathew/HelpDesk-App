@@ -38,6 +38,7 @@ public class DepartmentController {
     @ResponseBody
     public String createDepartment(@RequestParam("department_name") String department_name){
         if(departmentRepository.findDepartmentByName(department_name.toUpperCase()) != null)  { throw  new EmailExistsException("There is already a department with that name!"); }
+        if (department_name.equals("") || department_name.equals(" ")) throw new EmailExistsException("You can't create a department without a name!");
         Department department = new Department();
         department.setName(department_name.toUpperCase());
         departmentRepository.saveAndFlush(department);

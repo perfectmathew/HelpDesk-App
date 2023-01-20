@@ -119,7 +119,7 @@
                 <input type="hidden"  class="hidden" th:if="${authMsg != null}" id="responseMessage" th:value="${authMsg}">
                 <input type="hidden"  class="hidden" th:if="${authLogoutMessage != null}" id="logoutMessage" th:value="${authLogoutMessage}">
                 <p class="text-gray-600">Forgot your password? <strong class="text-gray-800" id="reset_password">Reset</strong> password.</p>
-                <p class="text-gray-600">Don't have an account? <strong class="text-gray-800">Ask</strong>  your administrator to create an account for you.</p>
+                <p class="text-gray-600">Don't have an account? <a th:href="@{/register}"> <strong class="text-gray-800">Register</strong>  now.</a></p>
             </form>
         </div>
         <div

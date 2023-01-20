@@ -44,14 +44,14 @@
           <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Contact details</dt>
             <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-              <p class="font-bold"> Notifier Name: </p> <p th:text="${ticket.notifier_name}"></p>
-              <p class="font-bold"> Notifier Surname: </p> <p th:text="${ticket.notifier_surname}"></p>
-              <p class="font-bold"> Notifier Phone number: </p> <p th:text="${ticket.notifier_phonenumber}"></p>
+              <p class="font-bold"> Notifier Name: </p> <p th:text="${ticket.notifier.name}"></p>
+              <p class="font-bold"> Notifier Surname: </p> <p th:text="${ticket.notifier.surname}"></p>
+              <p class="font-bold"> Notifier Phone number: </p> <p th:text="${ticket.notifier.phone_number}"></p>
             </dd>
           </div>
           <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Email address</dt>
-            <dd th:text="${ticket.notifier_email}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
+            <dd th:text="${ticket.notifier.email}" class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0"></dd>
           </div>
           <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Ticket datetime</dt>
@@ -111,6 +111,16 @@
                   <button sec:authorize="hasAnyAuthority('ADMIN','DEPARTMENT_BOSS')" type="button" data-mdb-ripple="true" data-mdb-ripple-color="light" class="addTaskBtn m-2 inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-800 active:shadow-lg transition duration-150 ease-in-out"
                   ><i class="fa-solid fa-plus"></i></button>
                 </div>
+              </section>
+            </dd>
+          </div>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Solution</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+              <section id="solution-section" sec:authorize="isAuthenticated()" th:if="${ticket.solution != null}">
+                <p class='font-bold'>Solution:</p>
+                <p th:text="${ticket.solution.solution}" id="solution-content" class='font-light'>{{TICKET_SOLUTION}}</p>
+                <p th:if="${ticket.solution !=null and ticket.solution.rejection_description != null}" th:text="${'Rejection description: '+ ticket.solution.rejection_description}" class="text-red-500 font-semibold mt-2"></p>
               </section>
             </dd>
           </div>

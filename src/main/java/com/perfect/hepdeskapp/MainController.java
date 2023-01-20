@@ -2,11 +2,15 @@ package com.perfect.hepdeskapp;
 
 import com.perfect.hepdeskapp.department.DepartmentRepository;
 import com.perfect.hepdeskapp.status.StatusRepository;
+import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
 import com.perfect.hepdeskapp.user.User;
 import com.perfect.hepdeskapp.user.UserDetail;
 import com.perfect.hepdeskapp.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -57,6 +61,7 @@ public class MainController {
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         User user = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
         model.addAttribute("loggedUser",user);
+        model.addAttribute("mostTroubleMakers",userRepository.TopTroubleMakers(PageRequest.of(0,10)));
         model.addAttribute("totalTicketCount",ticketRepository.findAll().stream().count());
         model.addAttribute("ticketByNewest",ticketRepository.findAllByStatus("NEW").stream().count());
         model.addAttribute("ticketByDone",ticketRepository.findAllByStatus("DONE").stream().count());
@@ -76,5 +81,10 @@ public class MainController {
         model.addAttribute("ticketByUndone",ticketRepository.findAllByDepartmentAndStatusNotContainingArchivedAndDone(user.getDepartment()).stream().count());
         return "manager/dashboard";
     }
-
+    @RequestMapping("/register")
+    public String register(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) return "register";
+        return "redirect:/home";
+    }
 }
