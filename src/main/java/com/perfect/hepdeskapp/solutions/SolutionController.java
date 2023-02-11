@@ -1,6 +1,6 @@
 package com.perfect.hepdeskapp.solutions;
 
-import com.perfect.hepdeskapp.config.EmailExistsException;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.config.Utility;
 import com.perfect.hepdeskapp.notification.NotifyService;
 import com.perfect.hepdeskapp.task.TaskRepository;
@@ -47,7 +47,7 @@ public class SolutionController {
     @ResponseBody
     public boolean solutionAction(@PathVariable Long ticket_id,@PathVariable boolean action){
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
-        if(ticket == null) throw new EmailExistsException("This ticket does not exists!");
+        if(ticket == null) throw new CustomErrorException("This ticket does not exists!");
         ticket.getSolution().setAccepted(action);
         ticketRepository.saveAndFlush(ticket);
         return action;
@@ -57,7 +57,7 @@ public class SolutionController {
     public Solution createNewSolution(@RequestParam String solution_text, @RequestParam Long ticket_id){
         Solution solution = new Solution(solution_text,false);
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
-        if(ticket == null) throw new EmailExistsException("This ticket does not exists!");
+        if(ticket == null) throw new CustomErrorException("This ticket does not exists!");
         solutionRepository.saveAndFlush(solution);
         ticket.setSolution(solution);
         ticketRepository.saveAndFlush(ticket);
@@ -67,7 +67,7 @@ public class SolutionController {
     @ResponseBody
     public Solution editSolution(@RequestParam Long solution_id, @RequestParam String solution_text){
         Solution solution = solutionRepository.findSolutionById(solution_id);
-        if(solution == null) throw new EmailExistsException("This solution does not exist.");
+        if(solution == null) throw new CustomErrorException("This solution does not exist.");
         solution.setSolution(solution_text);
         solutionRepository.saveAndFlush(solution);
         return solution;
@@ -77,9 +77,9 @@ public class SolutionController {
     public Solution rejectSolution(HttpServletRequest request, @RequestParam Long solution_id, @RequestParam String reject_solution_text, @RequestParam Long ticket_id) throws IOException {
         Solution solution = solutionRepository.findSolutionById(solution_id);
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
-        if(solution == null) throw new EmailExistsException("This solution does not exist.");
-        if (ticket == null) throw new EmailExistsException("Ticket with this solution does not exists.");
-        if(reject_solution_text.length() > 255) throw new EmailExistsException("Reject description must contain less letters than 256.");
+        if(solution == null) throw new CustomErrorException("This solution does not exist.");
+        if (ticket == null) throw new CustomErrorException("Ticket with this solution does not exists.");
+        if(reject_solution_text.length() > 255) throw new CustomErrorException("Reject description must contain less letters than 256.");
             solution.setAccepted(false);
             solution.setRejection_description(reject_solution_text);
             List<String> tempEmails = new ArrayList<>();
@@ -98,7 +98,7 @@ public class SolutionController {
                         "<p>Thanks,<br> Help Desk System</p>");
             } catch (MessagingException me) {
                 me.printStackTrace();
-                throw new EmailExistsException("User added successfully, but there was an error with the smtp server.");
+                throw new CustomErrorException("User added successfully, but there was an error with the smtp server.");
             }
         }
         solutionRepository.saveAndFlush(solution);
@@ -110,8 +110,8 @@ public class SolutionController {
     public String deleteSolution(@RequestParam Long solution_id, @RequestParam Long ticket_id){
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
         Solution solution =  solutionRepository.findSolutionById(solution_id);
-        if(ticket == null) throw new EmailExistsException("This ticket does not exist.");
-        if(solution == null) throw new EmailExistsException("This solution does not exist.");
+        if(ticket == null) throw new CustomErrorException("This ticket does not exist.");
+        if(solution == null) throw new CustomErrorException("This solution does not exist.");
         ticket.setSolution(null);
         ticketRepository.saveAndFlush(ticket);
         solutionRepository.delete(solution);

@@ -1,6 +1,6 @@
 package com.perfect.hepdeskapp.security;
 
-import com.perfect.hepdeskapp.config.EmailExistsException;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.config.Utility;
 import com.perfect.hepdeskapp.department.DepartmentRepository;
 import com.perfect.hepdeskapp.notification.NotifyService;
@@ -63,8 +63,8 @@ public class AuthController {
                               @RequestParam String email,
                               @RequestParam String phone_number,
                               @RequestParam String password) throws IOException {
-        if (userRepository.findUserByEmail(email) != null) throw new EmailExistsException("User with this email already exists in application!");
-        if (password.length() < 6) throw new EmailExistsException("Password must have at least 6 letters!");
+        if (userRepository.findUserByEmail(email) != null) throw new CustomErrorException("User with this email already exists in application!");
+        if (password.length() < 6) throw new CustomErrorException("Password must have at least 6 letters!");
         passwordEncoder = new BCryptPasswordEncoder();
         User user = new User(name,surname,phone_number,email,passwordEncoder.encode(password),departmentRepository.findDepartmentByName("UNALLOCATED"),roleRepository.findRoleByName("USER"));
         user.setEnabled(false);

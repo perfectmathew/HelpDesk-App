@@ -19,7 +19,6 @@ public class HepDeskAppApplication implements WebMvcConfigurer {
 	}
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
 		registry.addResourceHandler("/uploads/**").addResourceLocations("/WEB-INF/uploads/")
 				.setCacheControl(CacheControl.maxAge(2, TimeUnit.HOURS).cachePublic());
 		WebMvcConfigurer.super.addResourceHandlers(registry);

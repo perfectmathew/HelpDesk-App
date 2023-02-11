@@ -23,4 +23,8 @@ public class UserService {
         Pageable pageable = PageRequest.of(page_num-1,10);
         return userRepository.findUserByRoleNamePageable(role_name,pageable);
     }
+
+    public String encryptPassword(String password){
+        return bCryptPasswordEncoder.encode(password);
+    }
 }

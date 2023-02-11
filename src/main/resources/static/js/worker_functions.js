@@ -81,6 +81,9 @@ $(document).on('click','.approveStatusBtn',function () {
             $('#ticketStatus').empty().append("Status: <span class='ticketStatusValue'>"+response+"</span>")
             if (response != 'VERIFICATION'){
                 $('#ticketStatus').append("<button type='button' class='ml-2 editStatusBtn text-white w-6 bg-yellow-500 hover:text-black rounded ease-in-out'><i class='fa-solid fa-pen-to-square'></i></button>")
+            }else{
+                $('.editSolution, .deleteSolution, #editButton').hide()
+                $('#message-for-worker').append("<p class='font-bold'>This ticket is under review, you cannot add new documentation to it.</p>")
             }
             notification("Successfully updated status!")
         },
@@ -101,7 +104,7 @@ $(document).on('click','#editButton',function () {
         "<input type='hidden' name='documentationid' value='"+doc_id+"'>" +
         "                <input type='hidden' name='ticketid' value='"+$('#ticket-id').val()+"'>\n" +
         "                <textarea name='content'  class='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline' required>\n" + doc_description +
-        "                     </textarea>\n" +
+        "</textarea>\n" +
         " <input type='hidden' name='_csrf' value='"+token+"' />"+
         "                <p class='font-bold'>Attachments:</p>\n" +
         "                <input type='file' id='attachments' name='attachments' multiple='multiple'>\n" +
@@ -309,5 +312,8 @@ $(document).ready(function () {
             $(this).parent().addClass("active");
         }
     });
-    getPage(0);
+    if ($('#solution_table_template').length){
+        getPage(0);
+    }
+
 })

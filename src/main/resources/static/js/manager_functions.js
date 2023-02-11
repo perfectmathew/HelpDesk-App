@@ -114,8 +114,8 @@ $("#user-addition-form").submit(function (e) {
                 "<td class='py-4 px-6'>"+user.phone_number+"</td>" +
                 "<td class='py-4 px-6'>"+user.department.name+"</td>" +
                 "<td class='py-4 px-6'>" +
-                "<button  class='editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
-                "<button class='deleteUsrBtn font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</button>\n" +
+                "<button  class='editUserBtn font-medium text-yellow-500 dark:text-yellow-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
+                "<button class='deleteUsrBtn font-medium text-red-500 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</button>\n" +
                 "</td>" +
                 "</tr>")
             notification("User added successfully!")
@@ -219,7 +219,10 @@ $(document).ready(function () {
             $(this).parent().addClass("active");
         }
     });
-    getPage(0);
+    if($('#users-hr-table').length){
+        getPage(0);
+    }
+
 })
 
 // CLOSE MODAL //

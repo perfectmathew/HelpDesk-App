@@ -1,6 +1,6 @@
 package com.perfect.hepdeskapp.user;
 
-import com.perfect.hepdeskapp.config.EmailExistsException;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.config.Utility;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.department.DepartmentRepository;
@@ -9,13 +9,12 @@ import com.perfect.hepdeskapp.role.Role;
 import com.perfect.hepdeskapp.role.RoleRepository;
 import com.perfect.hepdeskapp.status.StatusRepository;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +37,14 @@ public class UserController {
     StatusRepository statusRepository;
     final
     DepartmentRepository departmentRepository;
-    @Autowired
-    BCryptPasswordEncoder passwordEncoder;
+    final
+    UserService userService;
     final
     NotifyService notify;
     final
     Environment environment;
 
-    public UserController(TicketRepository ticketRepository, UserRepository userRepository, RoleRepository roleRepository, StatusRepository statusRepository, DepartmentRepository departmentRepository, NotifyService notify, Environment environment) {
+    public UserController(TicketRepository ticketRepository, UserRepository userRepository, RoleRepository roleRepository, StatusRepository statusRepository, DepartmentRepository departmentRepository, NotifyService notify, Environment environment, UserService userService) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -53,6 +52,7 @@ public class UserController {
         this.departmentRepository = departmentRepository;
         this.notify = notify;
         this.environment = environment;
+        this.userService = userService;
     }
 
     // REQUESTS TO HR SECTIONS
@@ -106,17 +106,17 @@ public class UserController {
             case "managers" -> {
                 if (!userRepository.findUserByEmailAndRoleName(value, "DEPARTMENT_BOSS").isEmpty()) {
                     return userRepository.findUserByEmailAndRoleName(value, "DEPARTMENT_BOSS");
-                } else throw new EmailExistsException("No records was found!");
+                } else throw new CustomErrorException("No records was found!");
             }
             case "workers" -> {
                 if (!userRepository.findUserByEmailAndRoleName(value, "WORKER").isEmpty()) {
                     return userRepository.findUserByEmailAndRoleName(value, "WORKER");
-                } else throw new EmailExistsException("No users was found!");
+                } else throw new CustomErrorException("No users was found!");
             }
             case "users" -> {
                 if (!userRepository.findUserByEmailAndRoleName(value, "USER").isEmpty()) {
                     return userRepository.findUserByEmailAndRoleName(value, "USER");
-                } else throw new EmailExistsException("No users was found!");
+                } else throw new CustomErrorException("No users was found!");
             }
             default -> {
                 return userRepository.findAll();
@@ -155,6 +155,7 @@ public class UserController {
         return "redirect:/admin/hr/users";
     }
     @GetMapping("/admin/api/hr/{type}/getAllUsers")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
     public List<User> getAllUsersByRole(@PathVariable String type){
         return switch (type) {
@@ -166,6 +167,7 @@ public class UserController {
         };
     }
     @GetMapping("/admin/hr/{type}/getAll")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
     public Page<User> getAllUsersPageableByRole(@PathVariable String type, @RequestParam int page, @RequestParam int size){
         Pageable paging = PageRequest.of(page, size);
@@ -195,6 +197,7 @@ public class UserController {
     }
     // API SECTION
     @PostMapping("/admin/hr/user/lock")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
     public boolean lockAccount(HttpServletRequest request,@RequestParam("operation") boolean operation, @RequestParam("userid") Long userid) throws IOException {
         User user = userRepository.findUserById(userid);
@@ -224,18 +227,20 @@ public class UserController {
         return operation;
     }
     @PostMapping( "/manager/api/addUser")
+
     @ResponseBody public User addNewUser(HttpServletRequest request, @RequestParam("name") String name,
                                          @RequestParam("surname") String surname, @RequestParam("phone_number") String phone_number,
                                          @RequestParam("email") String email, @RequestParam("password") String password ,
                                          @RequestParam(value = "department",required = false) Long department,
-                                         @RequestParam(value = "role", required = false) Long role) throws IOException, EmailExistsException {
+                                         @RequestParam(value = "role", required = false) Long role) throws IOException, CustomErrorException {
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         User userCheck = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
         String url = Utility.getSiteURL(request) + "/auth";
-       if(checkEmail(email)) throw new EmailExistsException("User with this email already exist.");
+       if(checkEmail(email)) {
+           throw new CustomErrorException("User with this email already exist.");
+       }
         Department departmentObject = departmentRepository.findDepartmentById(department);
-        passwordEncoder = new BCryptPasswordEncoder();
-        String encodedPassword = passwordEncoder.encode(password);
+        String encodedPassword = userService.encryptPassword(password);
         User user;
         if(role!=null) {
            user = new User(name, surname, phone_number, email,encodedPassword, departmentObject, roleRepository.findRoleById(role));
@@ -250,12 +255,12 @@ public class UserController {
                            "<p>We wish you to enjoy using our system.</p>");
                } catch (MessagingException me) {
                    me.printStackTrace();
-                    throw new EmailExistsException("User added successfully, but there was an error with the smtp server.");
+                    throw new CustomErrorException("User added successfully, but there was an error with the smtp server.");
                }
            }
 
         }else {
-            if(checkEmail(email)) throw new EmailExistsException("User with this email already exist.");
+            if(checkEmail(email)) throw new CustomErrorException("User with this email already exist.");
            user = new User(name, surname, phone_number, email,encodedPassword, userCheck.getDepartment(),roleRepository.findRoleByName("WORKER"));
            user.setEnabled(true);
            userRepository.saveAndFlush(user);
@@ -268,7 +273,7 @@ public class UserController {
                            "<p>We wish you to enjoy using our system.</p>");
                } catch (MessagingException me) {
                    me.printStackTrace();
-                   throw new EmailExistsException("User added successfully, but there was an error with the smtp server.");
+                   throw new CustomErrorException("User added successfully, but there was an error with the smtp server.");
                }
            }
         }
@@ -288,18 +293,17 @@ public class UserController {
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         User userCheck = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
         if(user.getRoleSet().contains(roleRepository.findRoleByName("ADMIN")) && !userCheck.getRoleSet().contains(roleRepository.findRoleByName("ADMIN"))){
-            throw new EmailExistsException("You don't have permission for that action!");
+            throw new CustomErrorException("You don't have permission for that action!");
         }
         user.setName(name);
         user.setSurname(surname);
         user.setPhone_number(phone_number);
         if(!user.getEmail().equals(email)){
             User userByEmail = userRepository.findUserByEmail(email);
-            if (userByEmail != null){ throw new EmailExistsException("This email is already taken!"); }
+            if (userByEmail != null){ throw new CustomErrorException("This email is already taken!"); }
             else user.setEmail(email);
         }
-        passwordEncoder = new BCryptPasswordEncoder();
-        String encodedPassword = passwordEncoder.encode(password);
+        String encodedPassword = userService.encryptPassword(password);
         if(!password.equals("")) user.setPassword(encodedPassword);
         if(department!=null) user.setDepartment(departmentRepository.findDepartmentById(department));
         if(role!=null) user.setRoleSet(roleRepository.findRoleById(role));
@@ -322,12 +326,13 @@ public class UserController {
                 }
             } catch (MessagingException me) {
                 me.printStackTrace();
-                throw new EmailExistsException("User data updated successfully, but there is a SMTP server error!");
+                throw new CustomErrorException("User data updated successfully, but there is a SMTP server error!");
             }
         }
        return user;
     }
     @PostMapping("/admin/api/deleteUser")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
     public String deleteUser(@RequestParam("userid") Long userid) throws IOException{
         User user =  userRepository.findUserById(userid);
@@ -340,7 +345,7 @@ public class UserController {
         }
         if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
             try {
-                notify.sendEmail(user.getEmail(), "HelpDesk | Your account has been deactivated!", "<p>Hello, your account has been deactivated. To re-enable it, contact your administrator..</p>" +
+                notify.sendEmail(user.getEmail(), "HelpDesk | Your account has been deleted!", "<p>Hello, your account has been deleted. If it's a mistake, contact your application administrator..</p>" +
                         "<p>Helpdesk system notification - please don't reply to this message.</p>");
             } catch (MessagingException me) {
                 me.printStackTrace();
@@ -380,7 +385,12 @@ public class UserController {
     @GetMapping("/manager/api/getUserDetails")
     @ResponseBody
     public User getUserDetails(@RequestParam("userid") Long userid){
-        return userRepository.findUserById(userid);
+        User user = userRepository.findUserById(userid);
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        User userCheck = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
+        if (user == null) throw new CustomErrorException("This user doesn't exists!");
+        if (user.getRoleSet().contains("ADMIN") && !userCheck.getRoleSet().contains("ADMIN")) throw new CustomErrorException("You don't have permission for this action!");
+        return user;
     }
     @PostMapping("/manager/api/deleteUserRole")
     @ResponseBody
@@ -393,8 +403,6 @@ public class UserController {
         }
         else return  "Error! User not found";
     }
-
-
 
     // Profiles section
     // Request Paths to users profile and manage it.
@@ -433,22 +441,20 @@ public class UserController {
                 user.setSurname(user_surname);
                 user.setPhone_number(user_phone);
                 if(!user_new_password.equals("null")){
-                    passwordEncoder = new BCryptPasswordEncoder();
-                    String encodedPassword = passwordEncoder.encode(user_new_password);
+                    String encodedPassword = userService.encryptPassword(user_new_password);
                     user.setPassword(encodedPassword);
                 }
                 userRepository.saveAndFlush(user);
                 return "Data has been updated successfully";
             } else {
-                throw new EmailExistsException("This email already exists!");
+                throw new CustomErrorException("This email already exists!");
             }
         }else {
             user.setName(user_name);
             user.setSurname(user_surname);
             user.setPhone_number(user_phone);
             if(!user_new_password.equals("null")){
-                passwordEncoder = new BCryptPasswordEncoder();
-                String encodedPassword = passwordEncoder.encode(user_new_password);
+                String encodedPassword = userService.encryptPassword(user_new_password);
                 user.setPassword(encodedPassword);
             }
             userRepository.saveAndFlush(user);

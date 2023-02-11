@@ -65,23 +65,23 @@ public class SettingsController {
                                @RequestParam("smtp_password") String smtp_password, @RequestParam("site_server_port") String site_server_port,
                               @RequestParam("site_maintenance_mode") String site_maintenance_mode, @RequestParam("site_max_file_size") String site_max_file_size,
                               @RequestParam("site_request_max_file_size") String site_request_max_file_size) {
-        String path = System.getProperty("user.dir") + "/target/application.properties";
+        String path = System.getProperty("user.dir") + "/config/application.properties";
         if (checkDbConnection(db_server,db_username,db_password).equals("Successful")){
             if (smtp_server_status.equals("ON")) {
                 if (!checkSMTPConnection(smtp_server,smtp_server_port,smtp_username,smtp_password).equals("Successful")) {
                     model.addAttribute("error","An error occurred while saving the configuration. Reason: Connection to smtp server cannot be established.");
-                    return "admin/server_restart";
+                    return "redirect:/admin/settings";
                 }
             }
             CreateConfigurationFile(path,db_server,db_username,db_password,site_server_port,site_maintenance_mode,site_max_file_size,site_request_max_file_size,smtp_server_status,smtp_server,String.valueOf(smtp_server_port),smtp_username,smtp_password);
             HepDeskAppApplication.restart();
         }else {
             model.addAttribute("error","An error occurred while saving the configuration. Reason: Unable to connect to the database.");
-            return "admin/server_restart";
+            return "redirect:/admin/settings";
         }
 
         model.addAttribute("message","The configuration was successfully changed. The server was automatically reset. We wish you a nice experience with our system.");
-        return "admin/server_restart";
+        return "redirect:/admin/settings";
     }
     @GetMapping("/admin/settings/restart")
     public String restart(){

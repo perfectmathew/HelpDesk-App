@@ -1,6 +1,7 @@
 package com.perfect.hepdeskapp;
 
 import com.perfect.hepdeskapp.department.DepartmentRepository;
+import com.perfect.hepdeskapp.role.RoleRepository;
 import com.perfect.hepdeskapp.status.StatusRepository;
 import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
@@ -29,12 +30,15 @@ public class MainController {
     DepartmentRepository departmentRepository;
     final
     TicketRepository ticketRepository;
+    private final RoleRepository roleRepository;
 
-    public MainController(UserRepository userRepository, StatusRepository statusRepository, DepartmentRepository departmentRepository, TicketRepository ticketRepository) {
+    public MainController(UserRepository userRepository, StatusRepository statusRepository, DepartmentRepository departmentRepository, TicketRepository ticketRepository,
+                          RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.statusRepository = statusRepository;
         this.departmentRepository = departmentRepository;
         this.ticketRepository = ticketRepository;
+        this.roleRepository = roleRepository;
     }
 
     @RequestMapping("/")
@@ -43,7 +47,8 @@ public class MainController {
         return "index";
     }
     @RequestMapping("/home")
-    public String index(){
+    public String home(Model model){
+        model.addAttribute("departmentList",departmentRepository.findAll());
         return "index";
     }
 
@@ -51,6 +56,10 @@ public class MainController {
     public String error404() { return "error"; }
     @RequestMapping("/direct")
     public String directRedirect() {
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        User user = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
+        if(user.getRoleSet().contains(roleRepository.findRoleByName("ADMIN"))) return "redirect:/admin/api/dashboard";
+        if(user.getRoleSet().contains(roleRepository.findRoleByName("DEPARTMENT_BOSS"))) return "redirect:/manager/api/dashboard";
         return "redirect:/home";
     }
 

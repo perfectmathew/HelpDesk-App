@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-
+@Service
 public class FileUploadService {
     public static void saveFile(String uploadDir, String fileName, MultipartFile multipartFile) throws IOException {
         Path uploadPath = Paths.get(uploadDir);
@@ -22,7 +22,7 @@ public class FileUploadService {
             Path filePath= uploadPath.resolve(fileName);
             Files.copy(inputStream,filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex){
-            throw  new IOException("Nie można zapisać pliku! Błąd: "+ ex + " przy zapisywaniu pliku:"+ fileName);
+            throw  new IOException("Cannot save file! Error: "+ ex + " to save file:"+ fileName);
         }
     }
 

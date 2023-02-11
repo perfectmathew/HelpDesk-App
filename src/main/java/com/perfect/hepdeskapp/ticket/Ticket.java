@@ -1,6 +1,7 @@
 package com.perfect.hepdeskapp.ticket;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.perfect.hepdeskapp.documentation.Documentation;
 import com.perfect.hepdeskapp.priority.Priority;
 import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.department.Department;
@@ -24,7 +25,6 @@ public class Ticket {
     private Long id;
     @NotNull
     private String description;
-
     @NotNull
     private String access_token;
     private Timestamp ticket_time;
@@ -34,11 +34,9 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "statusid")
     private Status status;
-
     @ManyToOne
     @JoinColumn(name = "departmentid")
     private Department department;
-
     @ManyToOne
     @NotNull
     @JoinColumn(name = "user_id")
@@ -57,9 +55,6 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "task_id")
     )
     private Set<Task> ticketTasksSet = new HashSet<>();
-
-
-
     @JsonIgnore
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(
@@ -68,12 +63,22 @@ public class Ticket {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> userList = new ArrayList<>();
-
-
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "solutionId")
     @JsonIgnore
     private Solution solution;
+    public Ticket(){
+
+    }
+    public Ticket(String description, String access_token, Timestamp ticket_time, Priority priority, Status status, Department department, User notifier) {
+        this.description = description;
+        this.access_token = access_token;
+        this.ticket_time = ticket_time;
+        this.priority = priority;
+        this.status = status;
+        this.department = department;
+        this.notifier = notifier;
+    }
 
     public Priority getPriority() {
         return priority;

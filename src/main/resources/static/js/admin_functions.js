@@ -470,7 +470,7 @@ $("#user-addition-form").submit(function (e) {
                 "<td class='py-4 px-6'>"+user.phone_number+"</td>" +
                 "<td class='py-4 px-6'>"+user.department.name+"</td>" +
                 "<td class='py-4 px-6'>" +
-                "<button  class='editUserBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
+                "<button  class='editUserBtn font-medium text-yellow-500 dark:text-yellow-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</button>\n" +
                 "<button class='deleteUsrBtn font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</button>\n" +
                 "<button class='lockAccountBnt font-medium text-gray-800 dark:text-gray-400 hover:underline'><span class='account-status-section'> <i class='fa-solid fa-lock'></i> Disable</span></button><" +
                 "/td>" +
@@ -642,7 +642,7 @@ $(document).on('click','.editDepartment',function () {
         },
         success: function (response) {
             $(current_td).eq(1).empty().append("<p>"+response.name+"</p>")
-            $(current_td).eq(2).empty().append(" <a  class='ediDepartmentBtn font-medium text-blue-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</a>" +
+            $(current_td).eq(2).empty().append(" <a  class='ediDepartmentBtn font-medium text-yellow-600 dark:text-blue-500 hover:underline'><i class='fa-solid fa-pen'></i> Edit</a>" +
                 "<a  class='deleteDepartment font-medium text-red-700 dark:text-red-500 hover:underline'><i class='fa-solid fa-trash'></i> Delete</a>")
             notification("Successfully edited "+response.name+" department")
         },

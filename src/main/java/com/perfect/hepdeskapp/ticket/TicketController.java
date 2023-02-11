@@ -1,9 +1,7 @@
 package com.perfect.hepdeskapp.ticket;
 
-import com.perfect.hepdeskapp.attachment.Attachment;
 import com.perfect.hepdeskapp.attachment.AttachmentRepository;
-import com.perfect.hepdeskapp.config.EmailExistsException;
-import com.perfect.hepdeskapp.config.Utility;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.department.DepartmentRepository;
 import com.perfect.hepdeskapp.documentation.Documentation;
@@ -12,11 +10,9 @@ import com.perfect.hepdeskapp.notification.NotifyService;
 import com.perfect.hepdeskapp.priority.PriorityRepository;
 import com.perfect.hepdeskapp.role.RoleRepository;
 import com.perfect.hepdeskapp.status.StatusRepository;
-import com.perfect.hepdeskapp.config.FileUploadService;
 import com.perfect.hepdeskapp.user.User;
 import com.perfect.hepdeskapp.user.UserDetail;
 import com.perfect.hepdeskapp.user.UserRepository;
-import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Sort;
@@ -26,12 +22,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.util.*;
 
 @Controller
@@ -51,7 +43,11 @@ public class TicketController {
     NotifyService notify;
     final
     TicketService ticketService;
-    public TicketController(TicketRepository ticketRepository, PriorityRepository priorityRepository, DepartmentRepository departmentRepository, StatusRepository statusRepository, AttachmentRepository attachmentRepository, UserRepository userRepository, DocumentationRepository documentationRepository, Environment environment, TicketService ticketService, RoleRepository roleRepository) {
+    public TicketController(TicketRepository ticketRepository, PriorityRepository priorityRepository,
+                            DepartmentRepository departmentRepository, StatusRepository statusRepository,
+                            AttachmentRepository attachmentRepository, UserRepository userRepository,
+                            DocumentationRepository documentationRepository, Environment environment,
+                            TicketService ticketService, RoleRepository roleRepository) {
         this.ticketRepository = ticketRepository;
         this.departmentRepository = departmentRepository;
         this.statusRepository = statusRepository;
@@ -63,15 +59,18 @@ public class TicketController {
         this.ticketService = ticketService;
         this.roleRepository = roleRepository;
     }
+
     // Request to ticket list
     // FOR ROLE ADMIN
     @RequestMapping(value = "/admin/api/tickets")
+    @PreAuthorize("hasRole('ADMIN')")
     public String adminTicketList(Model model){
         model.addAttribute("statusList",statusRepository.findAll());
         model.addAttribute("ticketList",ticketRepository.findAllByTicket_time());
         return "admin/ticket_list";
     }
     @RequestMapping(value = "/admin/api/history")
+    @PreAuthorize("hasRole('ADMIN')")
     public String adminHistoryTicketList(Model model){
         model.addAttribute("archive","archive");
         model.addAttribute("ticketList",ticketRepository.findAllByStatusContainsArchivedOrderByTicket_time());
@@ -80,6 +79,7 @@ public class TicketController {
     // Request to ticket list
     // FOR ROLE DEPARTMENT_BOSS
     @RequestMapping(value = "/manager/api/tickets")
+    @PreAuthorize("hasRole('DEPARTMENT_BOSS')")
     public String managerTicketList(Model model){
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         String email = ((UserDetail)principal).getUsername();
@@ -88,7 +88,20 @@ public class TicketController {
         model.addAttribute("ticketList",ticketRepository.findTicketsByDepartmentAnAndStatusNotContainingArchive(user.getDepartment()));
         return "manager/ticket_list";
     }
+    // Request to ticket list
+    // FOR ROLE WORKER
+    @RequestMapping(value = "/worker/api/tickets")
+    @PreAuthorize("hasRole('WORKER')")
+    public String workerTicketList(Model model){
+        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
+        String email = ((UserDetail)principal).getUsername();
+        User user = userRepository.findUserByEmail(email);
+        model.addAttribute("statusList",statusRepository.findStatusesByWorkerClass());
+        model.addAttribute("ticketList",ticketRepository.findTicketsByUserListContaining(user.getEmail()));
+        return "worker/ticket_list";
+    }
     @RequestMapping(value = "/user/api/tickets")
+    @PreAuthorize("hasRole('USER')")
     public String userTicketList(Model model){
         Object principal = SecurityContextHolder. getContext().getAuthentication().getPrincipal();
         String email = ((UserDetail)principal).getUsername();
@@ -106,67 +119,24 @@ public class TicketController {
         model.addAttribute("ticketList",ticketRepository.findTicketsByDepartmentAndStatusContainingArchivedOrderByTicket_time(user.getDepartment()));
         return "manager/ticket_list";
     }
-    // Request to ticket list
-    // FOR ROLE WORKER
-    @RequestMapping(value = "/worker/api/tickets")
-    public String workerTicketList(Model model){
-        Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
-        String email = ((UserDetail)principal).getUsername();
-        User user = userRepository.findUserByEmail(email);
-        model.addAttribute("statusList",statusRepository.findStatusesByWorkerClass());
-        model.addAttribute("ticketList",ticketRepository.findTicketsByUserListContaining(user.getEmail()));
-        return "worker/ticket_list";
+    @GetMapping(value = "/admin/getAllTickets")
+    @ResponseBody
+    public List<Ticket> allTicketList(){
+        return ticketRepository.findAll();
     }
+
     // Submit ticket function
     @PostMapping(value = "/user/api/sendTicket")
+    @PreAuthorize("isAuthenticated()")
     @ResponseBody
-    public String submitTicket(HttpServletRequest request, Ticket ticket,
+    public Ticket submitTicket(HttpServletRequest request,
                                @RequestParam("description") String ticket_content,
                                @RequestParam("selectedDepartment") String selectedDepartment,
                                @RequestParam(value = "attachments", required = false) MultipartFile[] files) throws IOException {
         Object principal = SecurityContextHolder. getContext(). getAuthentication(). getPrincipal();
         User user = userRepository.findUserByEmail(((UserDetail)principal).getUsername());
-        if (user == null) throw new EmailExistsException("Error wit credentials. Please log in again and re-submit the form!");
-        String token = RandomString.make(30);
-        Timestamp date = new Timestamp(System.currentTimeMillis());
-        if(files != null){
-            List<Attachment> attachmentsList = new ArrayList<>();
-            Path root = Paths.get("src","main","webapp","WEB-INF", "uploads");
-            String hash = ticketService.generateHash();
-            String uploadDir = root + "/" + hash;
-            for(MultipartFile file : files){
-                if(!file.isEmpty()){
-                    FileUploadService.saveFile(uploadDir,file.getOriginalFilename(),file);
-                    attachmentsList.add(new Attachment(file.getOriginalFilename(),"/uploads/"+hash+"/"+file.getOriginalFilename()));
-                }
-            }
-            attachmentRepository.saveAllAndFlush(attachmentsList);
-            ticket.getAttachmentSet().addAll(attachmentsList);
-        }
-        ticket.setNotifier(user);
-        ticket.setDescription(ticket_content);
-        ticket.setStatus(statusRepository.findStatusByStatus("NEW"));
-        ticket.setDepartment(departmentRepository.findDepartmentByName(selectedDepartment));
-        ticket.setAccess_token(token);
-        ticket.setTicket_time(date);
-        ticket.setPriority(priorityRepository.findPriorityByPriority_name("STANDARD"));
-        ticketRepository.saveAndFlush(ticket);
-        String url = Utility.getSiteURL(request) + "/status?ticket-id="+ ticket.getId() +"&ticket-token="+token;
-        if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
-            try {
-                notify.sendEmail(user.getEmail(), "HelpDesk | Your ticket has been sent!", "<p>Welcome,</p>"
-                        + "<p>we have forwarded your ticket to the appropriate people.</p>"
-                        + "<p>Your ticket number is: " + ticket.getId() + "</p>"
-                        + "<p>The access password for your ticket is: " + token + "</p>"
-                        + "<p><a href=\"" + url + "\">Go to ticket</a></p>"
-                        + "<br>"
-                        + "<p>Thank you for your trust. "
-                        + "Helpdesk system.</p>");
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
-        }
-        return "index";
+        if (user == null) throw new CustomErrorException("Error with credentials. Please log in again and re-submit the form!");
+        return ticketService.submitTicket(request,ticket_content,selectedDepartment,files,user);
     }
     
     @RequestMapping("/t/{ticketid}")
@@ -202,6 +172,13 @@ public class TicketController {
     @ResponseBody
     public String deleteTicket(@RequestParam("ticket_id") Long ticket_id){
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
+        if(!ticket.getAttachmentSet().isEmpty()) ticket.getAttachmentSet().clear();
+        if (!ticket.getUserList().isEmpty()) ticket.getUserList().clear();
+        Documentation documentation = documentationRepository.findDocumentationByTicket(ticket);
+        if (documentation != null){
+            if (!documentation.getDocumentationAttachmentsSet().isEmpty()) documentation.getDocumentationAttachmentsSet().clear();
+            documentationRepository.delete(documentation);
+        }
         ticketRepository.delete(ticket);
         return "Successfully";
     }

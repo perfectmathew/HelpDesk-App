@@ -1,19 +1,15 @@
 package com.perfect.hepdeskapp.task;
 
-import com.perfect.hepdeskapp.config.EmailExistsException;
-import com.perfect.hepdeskapp.role.Role;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.role.RoleRepository;
 import com.perfect.hepdeskapp.ticket.Ticket;
 import com.perfect.hepdeskapp.ticket.TicketRepository;
 import com.perfect.hepdeskapp.user.User;
 import com.perfect.hepdeskapp.user.UserDetail;
 import com.perfect.hepdeskapp.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.awt.image.LookupOp;
 
 @Controller
 public class TaskController {
@@ -36,7 +32,7 @@ public class TaskController {
     @ResponseBody
     public Task createTask(@RequestParam("ticket_id") Long ticket_id, @RequestParam("task_name") String task_name,
                            @RequestParam("task_description") String task_description){
-        if(task_description.length() > 255) throw new EmailExistsException("Task description is longer than 255 letter's");
+        if(task_description.length() > 255) throw new CustomErrorException("Task description is longer than 255 letter's");
         Task task =  new Task(task_name,task_description,false);
         taskRepository.saveAndFlush(task);
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
@@ -62,7 +58,7 @@ public class TaskController {
     @PostMapping("/manager/api/updateTask")
     @ResponseBody
     public Task updateTask(@RequestParam("task_id") Long task_id,@RequestParam("task_name") String task_name, @RequestParam("task_description") String task_description, @RequestParam("task_done") boolean task_done){
-        if(task_description.length() > 255) throw new EmailExistsException("Task description is longer than 255 letter's");
+        if(task_description.length() > 255) throw new CustomErrorException("Task description is longer than 255 letter's");
         Task task = taskRepository.findTaskById(task_id);
         task.setTask(task_name);
         task.setDescription(task_description);

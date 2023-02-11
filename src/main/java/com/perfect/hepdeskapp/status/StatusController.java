@@ -1,6 +1,6 @@
 package com.perfect.hepdeskapp.status;
 
-import com.perfect.hepdeskapp.config.EmailExistsException;
+import com.perfect.hepdeskapp.config.CustomErrorException;
 import com.perfect.hepdeskapp.config.Utility;
 import com.perfect.hepdeskapp.department.Department;
 import com.perfect.hepdeskapp.department.DepartmentRepository;
@@ -62,7 +62,7 @@ public class StatusController {
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
         Status status = statusRepository.findStatusById(status_id);
         if (status.equals(statusRepository.findStatusByStatus("VERIFICATION")) && ticket.getSolution() == null)
-            throw new EmailExistsException("You cannot send ticket to verification without the solution!");
+            throw new CustomErrorException("You cannot send ticket to verification without the solution!");
         ticket.setStatus(status);
         ticketRepository.saveAndFlush(ticket);
         if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
@@ -92,11 +92,11 @@ public class StatusController {
                                 "<p>Thanks for your trust.</p>" +
                                 "<p>HelpDesk System.</p>");
                     }else {
-                        throw new EmailExistsException("Error during send notification process");
+                        throw new CustomErrorException("Error during send notification process");
                     }
                 }
             } catch (MessagingException e) {
-                throw new EmailExistsException("SMTP ERROR");
+                throw new CustomErrorException("SMTP ERROR");
             }
         }
         return ticket.getStatus().getStatus();
@@ -108,10 +108,8 @@ public class StatusController {
                                                           @RequestParam("status-id") Long status_id) throws IOException{
         Ticket ticket = ticketRepository.findTicketById(ticket_id);
         ticket.setStatus(statusRepository.findStatusById(status_id));
-
         ticketRepository.saveAndFlush(ticket);
         if(!Objects.requireNonNull(environment.getProperty("smtp.status")).equals("OFF")) {
-
             String url = Utility.getSiteURL(request) + "/status?ticket-id="+ ticket.getId() +"&ticket-token="+ticket.getAccess_token();
             try {
                 notify.sendEmail(ticket.getNotifier().getEmail(), "HelpDesk | Your ticket changed status to "+ticket.getStatus().getStatus(), "<p>Welcome,</p>"
