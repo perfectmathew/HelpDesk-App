@@ -3,12 +3,10 @@ package com.perfect.hepdeskapp.config;
 import com.perfect.hepdeskapp.HepDeskAppApplication;
 import com.perfect.hepdeskapp.user.User;
 import com.perfect.hepdeskapp.user.UserDetail;
-import com.perfect.hepdeskapp.user.UserDetailService;
 import com.perfect.hepdeskapp.user.UserRepository;
+import org.aspectj.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -34,10 +31,12 @@ public class SettingsController {
     Environment environment;
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Autowired
+    final
     UserRepository userRepository;
-    public SettingsController(Environment environment) {
+    public SettingsController(Environment environment, UserRepository userRepository) {
         this.environment = environment;
+        this.userRepository = userRepository;
+
     }
 
     @GetMapping("/admin/settings")
@@ -87,6 +86,12 @@ public class SettingsController {
     public String restart(){
         HepDeskAppApplication.restart();
         return "redirect:/admin/settings";
+    }
+    @PostMapping("/admin/settings/backup")
+    @ResponseBody
+    public String backup(){
+        backupConfiguration();
+        return "Successful";
     }
     @GetMapping("/admin/settings/update")
     public String update(){
@@ -215,6 +220,18 @@ public class SettingsController {
             Writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void backupConfiguration(){
+        String source = System.getProperty("user.dir") + "/config/application.properties";
+        String destination =  System.getProperty("user.dir") + "/application.properties";
+        File src = new File(source);
+        File dest = new File(destination);
+        try {
+            FileUtil.copyFile(src,dest);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

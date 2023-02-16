@@ -63,8 +63,10 @@ $(document).on('click','#change-config',function () {
     $('#approve').attr('id','approve-password')
     $('#modal').fadeIn(300);
 })
+$(document).on('click','#check-update',function () {
+    notification("Helpdesk App is up to date! You can enjoy it now :)")
+})
 $(document).on('click','#approve-password',function () {
-
     $.ajax({
         url: '/admin/settings/checkPassword',
         type: 'POST',
@@ -162,7 +164,6 @@ $(document).on('click','#approve-risk',function (){
 })
 $(document).on('click','#edit-config',function (){
     $('#risk-modal').fadeIn(300)
-
 })
 $(document).on('click','#test-smtp',function (){
     $.ajax({
@@ -205,6 +206,22 @@ $(document).on('click','#test-db',function (){
         },
         error: function (){
             $('#messages').empty().append("<p class='mt-2 text-red-500 font-bold>'>Error during the connection!</p>")
+        }
+    })
+})
+$(document).on('click','#backup-configuration',function () {
+    notification("Backup process just started...")
+    $.ajax({
+        url: '/admin/settings/backup',
+        type: 'POST',
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        },
+        success: function (response) {
+            notification("Backup process completed!")
+        },
+        error:  function (e) {
+            notification("An internal error occurred!")
         }
     })
 })
