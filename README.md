@@ -41,9 +41,8 @@ A web application for managing help desk tickets, created for an engineering pap
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/perfectmathew/HelpDesk-App
     ```
-    (Replace `<repository-url>` with the actual URL of the repository)
 
 2.  **Database Setup:**
     *   Ensure your PostgreSQL server is running.
@@ -100,4 +99,4 @@ A web application for managing help desk tickets, created for an engineering pap
 
 ## License
 
-This project was created for an engineering paper. If you intend to distribute it further, consider adding a standard open-source license (e.g., MIT, Apache 2.0).
+This project was created for an engineering paper. Project is open to fork it. Have Fun!!!
